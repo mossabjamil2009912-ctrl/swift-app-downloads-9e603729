@@ -1824,11 +1824,13 @@ function OptionGrid({ options, selected, projectCards = false, energyCards = fal
   // شاشة حلول الطاقة: بطاقتان عريضتان واضحتان تملآن الشاشة
   if (energyCards) {
     const energyVisual = (title: string) =>
-      /pvsyst|دراسة/i.test(title)
-        ? { icon: LineChart, subtitle: "محاكاة دقيقة لإنتاجية المنظومة وكفاءتها على مدار العام، مع تقرير أداء مفصّل.", action: "ابدأ الدراسة", tone: "bg-brand text-brand-foreground" }
-        : { icon: Headphones, subtitle: "تواصل مع مهندسي أكتس لطلب استشارة فنية أو معاينة ميدانية لموقعك.", action: "تواصل مع الفريق", tone: "bg-skyline text-skyline-foreground" };
+      /جدوى/.test(title)
+        ? { icon: BadgeDollarSign, subtitle: "العائد وتوفير الديزل وفترة الاسترداد.", action: "ابدأ الدراسة", tone: "bg-energy/15 text-energy", ring: "hover:border-energy" }
+        : /pvsyst|دراسة/i.test(title)
+        ? { icon: LineChart, subtitle: "محاكاة إنتاجية المنظومة وأدائها على مدار العام.", action: "ابدأ الدراسة", tone: "bg-skyline/15 text-skyline", ring: "hover:border-skyline" }
+        : { icon: Headphones, subtitle: "استشارة فنية أو معاينة ميدانية لموقعك.", action: "تواصل مع الفريق", tone: "bg-brand/15 text-brand", ring: "hover:border-brand" };
     return (
-      <div className="stagger-in grid gap-3 sm:grid-cols-2">
+      <div className="stagger-in grid gap-2.5 sm:grid-cols-3">
         {options.map((option, index) => {
           const visual = energyVisual(option.title);
           const Icon = visual.icon;
@@ -1837,13 +1839,15 @@ function OptionGrid({ options, selected, projectCards = false, energyCards = fal
               key={`${option.id}-${index}`}
               type="button"
               onClick={() => onSelect(option.id)}
-              className="group flex h-full flex-col items-start gap-3 rounded-xl border border-border bg-card p-5 text-right shadow-sm transition hover:-translate-y-0.5 hover:border-brand hover:shadow-lg"
+              className={`group flex h-full items-start gap-3 rounded-lg border border-border bg-card p-3 text-right shadow-sm transition hover:shadow-md ${visual.ring}`}
             >
-              <span className={`grid size-12 shrink-0 place-items-center rounded-full ${visual.tone}`}><Icon className="size-6" /></span>
-              <strong className="text-base font-black">{option.title}</strong>
-              <small className="text-xs font-semibold leading-5 text-muted-foreground">{visual.subtitle}</small>
-              <span className="mt-auto inline-flex items-center gap-1.5 pt-2 text-xs font-black text-brand">
-                {visual.action} <ArrowLeft className="size-4 transition group-hover:-translate-x-0.5" />
+              <span className={`grid size-9 shrink-0 place-items-center rounded-lg ${visual.tone}`}><Icon className="size-4.5" /></span>
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <strong className="text-sm font-black leading-5">{option.title}</strong>
+                <small className="text-[11px] font-semibold leading-4 text-muted-foreground">{visual.subtitle}</small>
+                <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-black text-brand">
+                  {visual.action} <ArrowLeft className="size-3.5 transition group-hover:-translate-x-0.5" />
+                </span>
               </span>
             </button>
           );
@@ -1926,22 +1930,21 @@ function OptionGrid({ options, selected, projectCards = false, energyCards = fal
       return { image: industrialImage, icon: Zap, subtitle: "للمشاريع الصناعية والمنشآت الكبرى" };
     };
     return (
-      <div className="stagger-in grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="stagger-in grid grid-cols-2 gap-2.5 lg:grid-cols-4">
         {options.map((option, index) => {
           const visual = projectVisual(option.title);
           const Icon = visual.icon;
           const inactive = /قريباً/.test(option.title);
           return (
-            <button key={`${option.id}-${index}`} type="button" onClick={() => onSelect(option.id)} className={`group overflow-hidden rounded-lg border bg-card text-right shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg ${index === 1 ? "border-brand ring-1 ring-brand" : "border-border"}`}>
-              <span data-photo-frame className="relative block aspect-[16/9] w-full overflow-hidden border-b border-border bg-muted">
+            <button key={`${option.id}-${index}`} type="button" onClick={() => onSelect(option.id)} className={`group overflow-hidden rounded-lg border bg-card text-right shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${index === 1 ? "border-brand ring-1 ring-brand" : "border-border"}`}>
+              <span data-photo-frame className="relative block aspect-[2/1] w-full overflow-hidden border-b border-border bg-muted">
                 <img data-photo src={visual.image} alt="" loading="eager" decoding="async" fetchPriority="high" className={`size-full object-cover transition duration-500 group-hover:scale-[1.03] ${inactive ? "opacity-65" : ""}`} />
                 {inactive && <span className="absolute right-2 top-2 rounded-full bg-overlay/55 px-2 py-0.5 text-[10px] font-bold text-brand-foreground">قريباً</span>}
-                <span className={`absolute -bottom-4 right-3 grid size-10 place-items-center rounded-full border-[3px] border-card ${index === 1 ? "bg-brand text-brand-foreground" : "bg-secondary text-skyline"}`}><Icon className="size-4" /></span>
+                <span className={`absolute -bottom-3.5 right-2.5 grid size-8 place-items-center rounded-full border-2 border-card ${index === 1 ? "bg-brand text-brand-foreground" : "bg-secondary text-skyline"}`}><Icon className="size-3.5" /></span>
               </span>
-              <span className="flex min-h-[72px] flex-col px-3 pb-2 pt-6">
-                <strong className="text-sm font-black">{option.title}</strong>
-                <small className="mt-1 text-[11px] font-semibold text-muted-foreground">{visual.subtitle}</small>
-                <span className={`mt-auto grid size-8 place-items-center self-end rounded-full ${index === 1 ? "bg-brand text-brand-foreground" : "bg-brand/10 text-brand"}`}><ArrowLeft className="size-4" /></span>
+              <span className="flex flex-col px-2.5 pb-2 pt-5">
+                <strong className="text-[13px] font-black">{option.title}</strong>
+                <small className="mt-0.5 text-[10.5px] font-semibold text-muted-foreground">{visual.subtitle}</small>
               </span>
             </button>
           );
