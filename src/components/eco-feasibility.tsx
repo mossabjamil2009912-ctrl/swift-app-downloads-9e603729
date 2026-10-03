@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
-import { EcoReport } from "./eco-report";
+import { createPortal } from "react-dom";
+import { X, FileText } from "lucide-react";
+import { EcoReport, type CustomSystem } from "./eco-report";
 
 // دراسة الجدوى الاقتصادية: 24 خانة (ديزل لتر/ساعة أو أحمال kW) ثم 3 سيناريوهات للمنظومة
 type Mode = "diesel" | "loads";
@@ -162,9 +164,25 @@ export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?:
       )}
       <p className="text-[11px] text-muted-foreground">الأرقام تقديرية: {PSH} ساعات ذروة شمسية، {KWH_PER_L} kWh لكل لتر ديزل، وأسعار معدات متوسطة. السعر النهائي يُحدد في عرض السعر.</p>
       <div className="flex flex-wrap gap-2">
+        <button type="button" onClick={() => setShowReport(true)} className="inline-flex items-center gap-2 rounded-md bg-navy px-5 py-2.5 text-xs font-black text-primary-foreground"><FileText className="size-4" /> فتح تقرير الدراسة الاقتصادية</button>
         <button type="button" onClick={() => setDone(false)} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تعديل البيانات</button>
         {onSales && <button type="button" onClick={onSales} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تواصل مع فريق أكتس</button>}
       </div>
+      {showReport && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[100] flex flex-col bg-navy/80 p-2 backdrop-blur-sm sm:p-4" role="dialog" aria-modal="true">
+          <div className="mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+            <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+              <FileText className="size-4 shrink-0 text-brand" />
+              <span className="flex-1 truncate text-xs font-black text-navy lg:text-sm">تقرير دراسة الجدوى الاقتصادية — ACTES</span>
+              <button type="button" onClick={() => setShowReport(false)} aria-label="إغلاق" className="grid size-7 place-items-center rounded-full bg-muted text-navy transition hover:bg-border"><X className="size-4" /></button>
+            </div>
+            <div className="flex-1 overflow-auto bg-muted p-2 sm:p-4">
+              <EcoReport kw={reportKw} price={dp} system={sys} onEdit={() => { setShowReport(false); setDone(false); }} onSales={onSales} />
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
     </div>
   );
 }
@@ -177,6 +195,7 @@ export function EcoSystemStudy({ onSales }: { onSales?: () => void }) {
   const [hrs, setHrs] = useState<string[]>(() => Array(24).fill(""));
   const [total, setTotal] = useState("");
   const [one, setOne] = useState("");
+  const [showReport, setShowReport] = useState(false);
   const n = (v: string) => Math.max(0, Number(v) || 0);
   const kwp = (n(f.panelW) * n(f.panelN)) / 1000;
   const invKw = n(f.invKw) * n(f.invN);
@@ -211,6 +230,9 @@ export function EcoSystemStudy({ onSales }: { onSales?: () => void }) {
     const prev = cum; cum += net; rows.push({ y, cum: Math.round(cum) });
     if (payback === null && prev < 0 && cum >= 0 && net > 0) payback = y - 1 + Math.abs(prev) / net;
   }
+  // الأحمال للتقرير: أحمال العميل إن وُجدت، وإلا حمل افتراضي يساوي إنتاج المنظومة اليومي
+  const reportKw = useLoads ? loadKw : spread(Math.max(1, dailyKwh)).map(Number);
+  const sys: CustomSystem = { panelName: f.panel, panelW: n(f.panelW), panels: n(f.panelN), invName: f.inv, invKw: n(f.invKw), invN: n(f.invN), batName: f.bat, batUnit: n(f.batKwh), batN: n(f.batN), capex };
   const roi = capex > 0 ? Math.round((cum / capex) * 100) : 0;
   const field = (k: keyof typeof f, label: string, ph: string, num = false, opt = false) => (
     <label className="grid gap-1">
@@ -306,9 +328,25 @@ export function EcoSystemStudy({ onSales }: { onSales?: () => void }) {
       </div>
       <p className="text-[11px] text-muted-foreground">الأرقام تقديرية: {PSH} ساعات ذروة شمسية، نسبة أداء {PR * 100}%، {KWH_PER_L} kWh لكل لتر ديزل، وتدهور سنوي {DEG * 100}%.</p>
       <div className="flex flex-wrap gap-2">
+        <button type="button" onClick={() => setShowReport(true)} className="inline-flex items-center gap-2 rounded-md bg-navy px-5 py-2.5 text-xs font-black text-primary-foreground"><FileText className="size-4" /> فتح تقرير الدراسة الاقتصادية</button>
         <button type="button" onClick={() => setDone(false)} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تعديل البيانات</button>
         {onSales && <button type="button" onClick={onSales} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تواصل مع فريق أكتس</button>}
       </div>
+      {showReport && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[100] flex flex-col bg-navy/80 p-2 backdrop-blur-sm sm:p-4" role="dialog" aria-modal="true">
+          <div className="mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+            <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+              <FileText className="size-4 shrink-0 text-brand" />
+              <span className="flex-1 truncate text-xs font-black text-navy lg:text-sm">تقرير دراسة الجدوى الاقتصادية — ACTES</span>
+              <button type="button" onClick={() => setShowReport(false)} aria-label="إغلاق" className="grid size-7 place-items-center rounded-full bg-muted text-navy transition hover:bg-border"><X className="size-4" /></button>
+            </div>
+            <div className="flex-1 overflow-auto bg-muted p-2 sm:p-4">
+              <EcoReport kw={reportKw} price={dp} system={sys} onEdit={() => { setShowReport(false); setDone(false); }} onSales={onSales} />
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
     </div>
   );
 }
