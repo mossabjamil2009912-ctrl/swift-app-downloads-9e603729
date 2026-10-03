@@ -40,18 +40,13 @@ export default function ProductVideoPlayer({
       ref.current.currentTime = 0;
       void ref.current.play().catch(() => setPlaying(false));
     };
-    if (mutedRef.current || !isVoiceOn()) {
-      startVideo();
-      return () => { cancelled = true; };
+    // الفيديو ينطلق فوراً، والتعليق الصوتي يلحقه بالتوازي دون أن يؤخره.
+    startVideo();
+    if (!mutedRef.current && isVoiceOn()) {
+      spokenRef.current = narration;
+      unlockVoice();
+      void speak(narration, true);
     }
-    spokenRef.current = narration;
-    unlockVoice();
-    setPreparing(true);
-    void speak(narration, true).finally(() => {
-      if (cancelled) return;
-      setPreparing(false);
-      startVideo();
-    });
     return () => { cancelled = true; };
   }, [playableSrc, narration]);
 
@@ -125,8 +120,10 @@ export default function ProductVideoPlayer({
           src={playableSrc || undefined}
           poster={video.poster}
           playsInline
+          autoPlay
           preload="auto"
           muted
+          onCanPlay={(e) => { if (e.currentTarget.paused && e.currentTarget.currentTime === 0) void e.currentTarget.play().catch(() => {}); }}
           className="block aspect-video w-full object-cover"
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
