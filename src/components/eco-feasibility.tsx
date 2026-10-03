@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, FileText } from "lucide-react";
-import { EcoReport, type CustomSystem } from "./eco-report";
+import { X, FileText, Download } from "lucide-react";
+import { EcoReport, ecoSummary, type CustomSystem } from "./eco-report";
 
 /** يعيد التمرير إلى رأس الشاشة عند الانتقال بين خطوات الدراسة. */
 function toTop() {
@@ -31,66 +31,100 @@ const hourLabel = (h: number) => {
 };
 const nf = (n: number, d = 0) => n.toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: d });
 
-type Scenario = {
-  key: string; title: string; note: string; kwp: number; bat: number; inv: number;
-  coverage: number; liters: number; saving: number; capex: number; payback: number | null; net: number; recommended: boolean;
+const PROJECT_KEY = "actes_eco_project";
+const DAY_SHARE = [1, 1, 1, 1, 1, 1.2, 1.6, 2.4, 3, 3.2, 3.3, 3.3, 3.2, 3.2, 3.2, 3.1, 2.9, 2.6, 2.4, 2.2, 1.9, 1.6, 1.3, 1.1];
+
+type Goal = "reduce" | "free";
+const GOALS: Record<Goal, { title: string; note: string; levels: { t: number; label: string; note: string }[] }> = {
+  reduce: {
+    title: "تقليل استهلاك الديزل", note: "خفض تكلفة التشغيل مع بقاء المولد للفترات الليلية",
+    levels: [
+      { t: 0.35, label: "توفير 35%", note: "منظومة نهارية اقتصادية بأقل استثمار" },
+      { t: 0.55, label: "توفير 55%", note: "منظومة متوازنة مع تخزين خفيف" },
+      { t: 0.7, label: "توفير 70%", note: "تغطية النهار كاملاً وبداية المساء" },
+    ],
+  },
+  free: {
+    title: "الاستغناء عن الديزل", note: "استقلالية عالية والمولد احتياط فقط",
+    levels: [
+      { t: 0.8, label: "استقلالية 80%", note: "المولد يعمل ساعات قليلة فجراً" },
+      { t: 0.9, label: "استقلالية 90%", note: "شبه استغناء كامل عن المولد" },
+      { t: 1, label: "استقلالية 100%", note: "منظومة مستقلة والمولد للطوارئ فقط" },
+    ],
+  },
 };
 
-function compute(kw: number[], dieselPrice: number): Scenario[] {
-  const total = kw.reduce((s, v) => s + v, 0);
-  const day = kw.reduce((s, v, h) => s + (DAY(h) ? v : 0), 0);
-  const night = total - day;
-  const peak = Math.max(...kw, 0);
-  const defs = [
-    { key: "day", title: "السيناريو 1 — التوفير النهاري", note: "ألواح تغطي أحمال النهار بدون بطاريات — أقل تكلفة وأسرع استرداد", pv: day, bat: 0 },
-    { key: "hyb", title: "السيناريو 2 — الهجين المتوازن", note: "ألواح + بطاريات تغطي النهار و60% من الليل — الأفضل عائداً", pv: day + night * 0.6 * 1.1, bat: (night * 0.6) / DOD, recommended: true },
-    { key: "max", title: "السيناريو 3 — الاستقلالية القصوى", note: "تغطية 95% من الاستهلاك وإيقاف شبه كامل للمولد", pv: total * 0.95 * 1.1, bat: (night * 0.95) / DOD },
-  ];
-  return defs.map((d) => {
-    const covered = d.key === "day" ? day : d.key === "hyb" ? day + night * 0.6 : total * 0.95;
-    const kwp = Math.ceil((d.pv / (PSH * PR)) * 10) / 10;
-    const bat = Math.ceil(d.bat * 10) / 10;
-    const inv = Math.ceil(peak * 1.25);
-    const capex = Math.round(kwp * PV_USD_KWP + bat * BAT_USD_KWH + inv * INV_USD_KW);
-    const liters = Math.round((covered / KWH_PER_L) * 365);
-    const saving = Math.round(liters * dieselPrice * 1.1); // + 10% صيانة وزيوت المولد
-    let cum = -capex; let payback: number | null = null;
-    for (let y = 1; y <= YEARS; y++) {
-      const net = saving * Math.pow(1 - DEG, y - 1) - capex * OM;
-      const prev = cum; cum += net;
-      if (payback === null && prev < 0 && cum >= 0 && net > 0) payback = y - 1 + Math.abs(prev) / net;
-    }
-    return { key: d.key, title: d.title, note: d.note, kwp, bat, inv, coverage: total > 0 ? Math.round((covered / total) * 100) : 0, liters, saving, capex, payback: payback === null ? null : Math.round(payback * 10) / 10, net: Math.round(cum), recommended: Boolean(d.recommended) };
-  });
+function ReportModal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  if (typeof document === "undefined") return null;
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex flex-col bg-background">
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <p className="text-sm font-black">تقرير دراسة الجدوى الاقتصادية</p>
+        <button type="button" onClick={onClose} aria-label="إغلاق" className="rounded-md border border-border p-1.5"><X className="size-4" /></button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6"><div className="mx-auto max-w-[1000px]">{children}</div></div>
+    </div>,
+    document.body,
+  );
 }
 
-const INV_SIZES = [8, 12, 16, 20, 50];
-const invPkg = (kw: number) => INV_SIZES.find((s) => s >= kw) ?? 50;
-
 export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?: () => void; onBuy?: (loads: string) => void }) {
+  const [step, setStep] = useState<"name" | "data" | "goal" | "result">("name");
+  const [project, setProject] = useState("");
+  useEffect(() => { try { setProject(sessionStorage.getItem(PROJECT_KEY) ?? ""); } catch { /* ignore */ } }, []);
   const [values, setValues] = useState<string[]>(() => Array(24).fill(""));
   const [price, setPrice] = useState("1.1");
-  const [done, setDone] = useState(false);
-  const [report, setReport] = useState(false);
-  useEffect(() => { toTop(); }, [done]);
   const [same, setSame] = useState(false);
+  const [daily, setDaily] = useState("");
+  const [goal, setGoal] = useState<Goal>("reduce");
+  const [pick, setPick] = useState(1);
+  const [open, setOpen] = useState<number | null>(null);
+  const [dl, setDl] = useState<number | null>(null);
+  useEffect(() => { toTop(); }, [step]);
   const filled = values.filter((v) => v.trim() !== "" && !isNaN(Number(v))).length;
   const unit = mode === "diesel" ? "لتر/ساعة" : "kW";
-
   const kw = useMemo(() => values.map((v) => { const n = Math.max(0, Number(v) || 0); return mode === "diesel" ? n * KWH_PER_L : n; }), [values, mode]);
   const dp = Math.max(0, Number(price) || 0);
-  const scenarios = useMemo(() => compute(kw, dp), [kw, dp]);
-  const rec = scenarios.find((s) => s.recommended);
-  const daily = kw.reduce((s, v) => s + v, 0);
-  const dailyL = daily / KWH_PER_L;
+  const levels = GOALS[goal].levels;
+  const sums = useMemo(() => levels.map((l) => ecoSummary(kw, dp, l.t)), [kw, dp, levels]);
+  const loadsText = () => kw.map((v, h) => `${h}: ${Math.round(v * 100) / 100}`).join("\n");
+  const tier = (p: number) => (p <= 16 ? "سكنية" : p <= 100 ? "تجارية" : "تجارية / صناعية");
 
-  if (!done) {
+  const distribute = () => {
+    const tot = Math.max(0, Number(daily) || 0); if (!tot) return;
+    const s = DAY_SHARE.reduce((a, b) => a + b, 0);
+    setSame(false);
+    setValues(DAY_SHARE.map((w) => String(Math.round(((tot * w) / s) * 100) / 100)));
+  };
+
+  if (step === "name") {
     return (
-      <form onSubmit={(e) => { e.preventDefault(); if (filled === 24) setDone(true); }} className="rounded-lg border border-border bg-muted/35 p-5">
-        <p className="text-sm font-black">{mode === "diesel" ? "بيانات الديزل" : "بيانات الاحمال"}</p>
+      <form onSubmit={(e) => { e.preventDefault(); const n = project.trim(); if (!n) return; try { sessionStorage.setItem(PROJECT_KEY, n); } catch { /* ignore */ } setStep("data"); }} className="rounded-lg border border-border bg-muted/35 p-5">
+        <p className="text-sm font-black">اسم المشروع</p>
+        <p className="mt-1 text-xs text-muted-foreground">يظهر هذا الاسم في رأس تقرير دراسة الجدوى بدلاً من اسم الشركة.</p>
+        <input autoFocus value={project} onChange={(e) => setProject(e.target.value)} placeholder="مثال: مصنع الجزيرة للمواد الغذائية" className="mt-3 w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm" />
+        <button type="submit" disabled={!project.trim()} className="mt-3 w-full rounded-md bg-skyline px-6 py-3 text-sm font-bold text-skyline-foreground disabled:opacity-50 sm:w-auto">متابعة</button>
+      </form>
+    );
+  }
+
+  if (step === "data") {
+    return (
+      <form onSubmit={(e) => { e.preventDefault(); if (filled === 24) setStep("goal"); }} className="rounded-lg border border-border bg-muted/35 p-5">
+        <p className="text-sm font-black">{mode === "diesel" ? "بيانات الديزل" : "بيانات الاحمال"} — {project}</p>
         <p className="mt-1 text-xs text-muted-foreground">
           {mode === "diesel" ? "اكتب استهلاك المولد من الديزل في كل ساعة باللتر — اكتب 0 للساعات التي لا يعمل فيها" : "اكتب الحمل المتوقع في كل ساعة بالكيلووات (kW) — اكتب 0 للساعات بلا أحمال"}
         </p>
+        <div className="mt-3 rounded-md border border-dashed border-border bg-background p-3">
+          <p className="text-xs font-bold">{mode === "diesel" ? "أو اكتب استهلاك الديزل اليومي" : "أو اكتب الحمل اليومي الكلي"}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <div className="relative w-44">
+              <input inputMode="decimal" value={daily} onChange={(e) => setDaily(e.target.value)} placeholder="0" className="w-full rounded-md border border-border bg-background px-3 py-2 pe-16 text-sm tabular-nums" />
+              <span className="pointer-events-none absolute inset-y-0 end-2 flex items-center text-[10px] text-muted-foreground">{mode === "diesel" ? "لتر/يوم" : "kWh/يوم"}</span>
+            </div>
+            <button type="button" onClick={distribute} disabled={!(Number(daily) > 0)} className="rounded-md bg-navy px-3 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50">توزيع على الساعات</button>
+          </div>
+        </div>
         <label className="mt-3 flex cursor-pointer items-center gap-2 text-xs font-bold">
           <input type="checkbox" checked={same} onChange={(e) => { const on = e.target.checked; setSame(on); if (on) { const v = values.find((x) => x.trim() !== "") ?? ""; setValues(Array(24).fill(v)); } }} className="size-4 accent-primary" />
           اعتماد نفس القيمة لكل الساعات
@@ -111,76 +145,97 @@ export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?:
           <input inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} className="rounded-md border border-border bg-background px-3 py-2 text-sm tabular-nums" />
         </label>
         <p className="mt-3 text-xs text-muted-foreground">تم إدخال {filled} من 24 خانة</p>
-        <button type="submit" disabled={filled !== 24} className="mt-3 w-full rounded-md bg-skyline px-6 py-3 text-sm font-bold text-skyline-foreground disabled:opacity-50 sm:w-auto">احسب السيناريوهات الثلاثة</button>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="submit" disabled={filled !== 24} className="rounded-md bg-skyline px-6 py-3 text-sm font-bold text-skyline-foreground disabled:opacity-50">متابعة</button>
+          <button type="button" onClick={() => setStep("name")} className="rounded-md border border-border px-4 py-2 text-xs font-bold">رجوع</button>
+        </div>
       </form>
     );
   }
 
-  if (report) {
-    return <EcoReport kw={kw} price={dp} onEdit={() => setReport(false)} onSales={onSales} onBuy={onBuy ? () => onBuy(kw.map((v, h) => `${h}: ${Math.round(v * 100) / 100}`).join("\n")) : undefined} />;
+  if (step === "goal") {
+    return (
+      <div className="rounded-lg border border-border bg-muted/35 p-5">
+        <p className="text-sm font-black">ما هدفك من المنظومة؟</p>
+        <p className="mt-1 text-xs text-muted-foreground">اختر الهدف لنعرض لك ثلاثة سيناريوهات مناسبة لمشروع {project}.</p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {(Object.keys(GOALS) as Goal[]).map((g) => (
+            <button key={g} type="button" onClick={() => { setGoal(g); setPick(1); setStep("result"); }} className="rounded-lg border border-border bg-background p-4 text-start transition hover:border-primary">
+              <p className="text-sm font-black">{GOALS[g].title}</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">{GOALS[g].note}</p>
+              <p className="mt-2 text-[11px] font-bold text-primary">{GOALS[g].levels.map((l) => `${Math.round(l.t * 100)}%`).join(" • ")}</p>
+            </button>
+          ))}
+        </div>
+        <button type="button" onClick={() => setStep("data")} className="mt-4 rounded-md border border-border px-4 py-2 text-xs font-bold">رجوع</button>
+      </div>
+    );
   }
-  const peakKw = Math.max(...kw, 0);
-  const tier = peakKw <= 16 ? "سكنية" : peakKw <= 100 ? "تجارية" : "تجارية / صناعية كبرى";
-  const recInv = rec ? (rec.inv <= 16 ? `Deye ${invPkg(rec.inv)} kW${invPkg(rec.inv) > 12 ? " — 3 فاز" : " — 1 فاز"}` : rec.inv <= 100 ? `Deye 50 kW — 3 فاز × ${Math.ceil(rec.inv / 50)}` : `Solis 125 kW — 3 فاز × ${Math.ceil(rec.inv / 125)}`) : "";
-  const recPan = rec ? (rec.kwp < 3 ? `Suntech — ${Math.ceil((rec.kwp * 1000) / 595)} لوح 595W` : `Suntech — ${Math.ceil((rec.kwp * 1000) / 720)} لوح 720W`) : "";
-  const recBat = rec ? (rec.bat <= 0 ? "بدون" : peakKw <= 16 ? `Pylontech US5000 × ${Math.ceil(rec.bat / 4.8)}` : `HiTHIUM ليثيوم ${nf(rec.bat, 1)} kWh`) : "";
+
+  const reportFor = (i: number, extra: { autoDownload?: boolean; onDownloaded?: () => void; hideActions?: boolean }) => (
+    <EcoReport kw={kw} price={dp} project={project} target={levels[i]!.t} scenarioLabel={levels[i]!.label} onSales={onSales} {...extra} />
+  );
+  const s = sums[pick]!;
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-border bg-muted/35 p-4 text-sm">
-        <p className="font-black">ملخص الاستهلاك الحالي</p>
-        <div className="mt-2 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-          <div>الاستهلاك اليومي<br /><b className="tabular-nums">{nf(daily, 1)} kWh</b></div>
-          <div>ديزل يومي مكافئ<br /><b className="tabular-nums">{nf(dailyL, 1)} لتر</b></div>
-          <div>ديزل سنوي<br /><b className="tabular-nums">{nf(dailyL * 365)} لتر</b></div>
-          <div>تكلفة الديزل السنوية<br /><b className="tabular-nums">{nf(dailyL * 365 * dp)} $</b></div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="text-sm font-black">{GOALS[goal].title} — {project}</p>
+          <p className="text-[11px] text-muted-foreground">حمل يومي {nf(s.total, 1)} kWh • اختر السيناريو المناسب</p>
         </div>
+        <button type="button" onClick={() => setStep("goal")} className="rounded-md border border-border px-3 py-1.5 text-xs font-bold">تغيير الهدف</button>
       </div>
       <div className="grid gap-3 lg:grid-cols-3">
-        {scenarios.map((s) => (
-          <div key={s.key} className={`rounded-lg border p-4 ${s.recommended ? "border-primary bg-primary/5" : "border-border bg-background"}`}>
-            {s.recommended && <span className="mb-2 inline-block rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">الموصى به</span>}
-            <p className="text-sm font-black">{s.title}</p>
-            <p className="mt-1 text-[11px] text-muted-foreground">{s.note}</p>
-            <dl className="mt-3 space-y-1.5 text-xs">
-              {[
-                ["قدرة الألواح", `${nf(s.kwp, 1)} kWp`],
-                ["سعة البطاريات", s.bat > 0 ? `${nf(s.bat, 1)} kWh` : "بدون"],
-                ["قدرة الانفرتر", `${s.inv} kW`],
-                ["نسبة التغطية", `${s.coverage}%`],
-                ["الديزل الموفّر سنوياً", `${nf(s.liters)} لتر`],
-                ["التوفير السنوي", `${nf(s.saving)} $`],
-                ["التكلفة التقديرية", `${nf(s.capex)} $`],
-                ["فترة الاسترداد", s.payback ? `${s.payback} سنة` : "—"],
-                [`صافي الربح خلال ${YEARS} سنة`, `${nf(s.net)} $`],
-              ].map(([k, v]) => (
-                <div key={k} className="flex justify-between gap-2 border-b border-border/60 pb-1"><dt className="text-muted-foreground">{k}</dt><dd className="font-bold tabular-nums">{v}</dd></div>
-              ))}
-            </dl>
-          </div>
-        ))}
+        {levels.map((l, i) => {
+          const x = sums[i]!;
+          const on = pick === i;
+          return (
+            <div key={l.t} role="button" tabIndex={0} onClick={() => setPick(i)} onKeyDown={(e) => { if (e.key === "Enter") setPick(i); }} className={`cursor-pointer rounded-lg border p-4 transition ${on ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border bg-background"}`}>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-base font-black">{l.label}</p>
+                <span className={`size-4 rounded-full border-2 ${on ? "border-primary bg-primary" : "border-border"}`} />
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">{l.note}</p>
+              <p className="mt-2 inline-block rounded bg-muted px-2 py-0.5 text-[10px] font-bold">منظومة {tier(x.peak)}</p>
+              <dl className="mt-3 space-y-1.5 text-xs">
+                {[
+                  ["الألواح", `${nf(x.kwp, 2)} kWp`],
+                  ["", x.panelLabel],
+                  ["الانفرتر", x.inv],
+                  ["البطاريات", x.batKwh > 0 ? `${nf(x.batKwh, 1)} kWh` : "بدون"],
+                  ["الديزل الموفّر", `${nf(x.savedL)} لتر/سنة`],
+                  ["التوفير السنوي", `${nf(x.saving)} $`],
+                  ["التكلفة التقديرية", `${nf(x.capex)} $`],
+                  ["فترة الاسترداد", x.months === null ? "—" : x.months < 24 ? `${nf(x.months, 1)} شهر` : `${nf(x.months / 12, 1)} سنة`],
+                ].map(([k, v], j) => (
+                  <div key={j} className="flex justify-between gap-2 border-b border-border/60 pb-1"><dt className="text-muted-foreground">{k}</dt><dd className="text-end font-bold tabular-nums">{v}</dd></div>
+                ))}
+              </dl>
+              <p className="mt-3 text-[11px] font-bold text-muted-foreground">التقرير الكامل</p>
+              <div className="mt-1.5 flex gap-2">
+                <button type="button" onClick={(e) => { e.stopPropagation(); setOpen(i); }} className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5 text-[11px] font-bold hover:border-primary"><FileText className="size-3.5" /> فتح</button>
+                <button type="button" disabled={dl !== null} onClick={(e) => { e.stopPropagation(); setDl(i); }} className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-navy px-2 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-60"><Download className="size-3.5" /> {dl === i ? "جارٍ..." : "تحميل"}</button>
+              </div>
+            </div>
+          );
+        })}
       </div>
-      {rec && (
-        <div className="rounded-lg border-2 border-primary bg-primary/5 p-4">
-          <p className="text-[11px] font-bold text-primary">المنظومة المناسبة لك</p>
-          <p className="mt-1 text-base font-black">منظومة هجينة {tier} {nf(rec.kwp, 1)} kWp</p>
-          <div className="mt-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-3">
-            <div className="rounded-md bg-background p-2.5">الانفرتر<br /><b>{recInv}</b></div>
-            <div className="rounded-md bg-background p-2.5">الألواح<br /><b>{recPan}</b></div>
-            <div className="rounded-md bg-background p-2.5">البطاريات<br /><b>{recBat}</b></div>
-          </div>
-          {onBuy && (
-            <button type="button" onClick={() => onBuy(kw.map((v, h) => `${h}: ${Math.round(v * 100) / 100}`).join("\n"))} className="mt-4 w-full rounded-md bg-energy px-6 py-3 text-sm font-black text-energy-foreground sm:w-auto">
-              طلب عرض سعر رسمي لهذه المنظومة
-            </button>
-          )}
-        </div>
+      {onBuy && (
+        <button type="button" onClick={() => onBuy(`${loadsText()}\nproject: ${project}\nscenario: ${levels[pick]!.label} — ${nf(s.kwp, 2)} kWp / ${nf(s.batKwh, 1)} kWh / ${s.inv}`)} className="w-full rounded-md bg-energy px-6 py-3 text-sm font-black text-energy-foreground">
+          متابعة الشراء — {levels[pick]!.label}
+        </button>
       )}
       <p className="text-[11px] text-muted-foreground">الأرقام تقديرية: {PSH} ساعات ذروة شمسية، {KWH_PER_L} kWh لكل لتر ديزل، وأسعار معدات متوسطة. السعر النهائي يُحدد في عرض السعر.</p>
       <div className="flex flex-wrap gap-2">
-        <button type="button" onClick={() => { setReport(true); toTop(); }} className="inline-flex items-center gap-2 rounded-md bg-navy px-4 py-2 text-xs font-black text-primary-foreground"><FileText className="size-4" /> فتح تقرير الدراسة الاقتصادية</button>
-        <button type="button" onClick={() => setDone(false)} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تعديل البيانات</button>
+        <button type="button" onClick={() => setStep("data")} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تعديل البيانات</button>
         {onSales && <button type="button" onClick={onSales} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تواصل مع فريق أكتس</button>}
       </div>
+      {open !== null && <ReportModal onClose={() => setOpen(null)}>{reportFor(open, {})}</ReportModal>}
+      {dl !== null && (
+        <div aria-hidden style={{ position: "fixed", left: -10000, top: 0, width: 1000, pointerEvents: "none" }}>
+          {reportFor(dl, { autoDownload: true, hideActions: true, onDownloaded: () => setDl(null) })}
+        </div>
+      )}
     </div>
   );
 }

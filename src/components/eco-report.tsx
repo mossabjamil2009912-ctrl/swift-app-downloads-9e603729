@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Download } from "lucide-react";
 
 // تقرير دراسة الجدوى التنفيذي — مقارنة وضع المولد فقط بالمنظومة المقترحة (شمس + تخزين)
@@ -13,22 +13,27 @@ type Hour = { h: number; load: number; pv: number; direct: number; batOut: numbe
 
 export type CustomSystem = { panelName: string; panelW: number; panels: number; invName: string; invKw: number; invN: number; batName: string; batUnit: number; batN: number; capex: number };
 
-function design(kw: number[], sys?: CustomSystem) {
+function design(kw: number[], sys?: CustomSystem, target?: number) {
   const total = kw.reduce((s, v) => s + v, 0);
   const peak = Math.max(...kw, 0);
   const day = kw.reduce((s, v, h) => s + (h >= 7 && h < 17 ? v : 0), 0);
-  const evening = kw.reduce((s, v, h) => s + (h >= 17 && h < 22 ? v : 0), 0) + (kw[6] ?? 0);
-  const mods = sys ? sys.batN : Math.max(evening > 0 ? 1 : 0, Math.ceil(evening / DOD / BAT_MOD));
-  const batKwh = sys ? sys.batN * sys.batUnit : mods * BAT_MOD;
+  const evening0 = kw.reduce((s, v, h) => s + (h >= 17 && h < 22 ? v : 0), 0) + (kw[6] ?? 0);
+  // عند تحديد نسبة تغطية مستهدفة: النهار أولاً ثم البطاريات لباقي النسبة
+  const want = target !== undefined ? total * target : undefined;
+  const pvDay = want !== undefined ? Math.min(day, want) : day;
+  const evening = want !== undefined ? Math.max(0, want - day) * (target! >= 0.99 ? 1.12 : 1.05) : evening0;
+  const smallBat = peak <= 16 ? 5.12 : BAT_MOD;
+  const mods = sys ? sys.batN : Math.max(evening > 0 ? 1 : 0, Math.ceil(evening / DOD / smallBat));
+  const batKwh = sys ? sys.batN * sys.batUnit : mods * smallBat;
   const racks = Math.ceil(mods / RACK);
-  const panels = sys ? sys.panels : Math.ceil(((day + evening / 0.95) / (PSH * PR)) * 1000 / PANEL_W);
+  const panels = sys ? sys.panels : Math.max(1, Math.ceil(((pvDay * (want !== undefined ? 1.08 : 1) + evening / 0.95) / (PSH * PR)) * 1000 / PANEL_W));
   const kwp = (panels * (sys ? sys.panelW : PANEL_W)) / 1000;
   const unit = sys ? sys.invKw : peak > 100 ? 125 : peak > 20 ? 50 : peak > 12 ? 20 : peak > 8 ? 12 : 8;
   const invN = sys ? sys.invN : Math.max(1, Math.ceil((peak * 1.25) / unit));
   const invBrand = sys ? sys.invName : unit >= 125 ? "Solis" : "Deye";
   const pvKw = sys ? Math.min(kwp, unit * invN * 1.3) : kwp;
   const panelLabel = sys ? `${panels} لوح ${sys.panelName} ${sys.panelW}W` : `${panels} لوح سنتك ${PANEL_W}W`;
-  const batLabel = sys ? (batKwh > 0 ? `${mods} بطارية ${sys.batName} ${sys.batUnit}kWh` : "بدون بطاريات") : `${racks} راك × ${mods} بطارية ${BAT_MOD}kWh`;
+  const batLabel = sys ? (batKwh > 0 ? `${mods} بطارية ${sys.batName} ${sys.batUnit}kWh` : "بدون بطاريات") : mods === 0 ? "بدون بطاريات" : peak <= 16 ? `${mods} بطارية Pylontech ${smallBat}kWh` : `${racks} راك × ${mods} بطارية ${BAT_MOD}kWh`;
   // منحنى الإنتاج الشمسي (جيبي من 6 إلى 18)
   const shape = Array.from({ length: 24 }, (_, h) => (h >= 6 && h < 18 ? Math.sin((Math.PI * (h + 0.5 - 6)) / 12) : 0));
   const sSum = shape.reduce((a, b) => a + b, 0);
@@ -106,7 +111,7 @@ const Page = ({ n, children }: { n: number; children: React.ReactNode }) => (
   <div className="report-page overflow-hidden rounded-xl border shadow-sm" style={{ background: R.paper, borderColor: R.line, breakAfter: n < 6 ? "page" : "auto" }}>
     <div className="flex items-center justify-between gap-3 border-b bg-white px-4 py-3 sm:px-6" style={{ borderColor: R.line }}>
       <div className="flex items-center gap-3"><img src={LOGO} alt="ACTES" className="h-9 w-auto object-contain" /><span dir="ltr" className="hidden text-[11px] font-black tracking-wide sm:inline" style={{ color: "#4b5563" }}>ENERGY SYSTEMS & SOLUTIONS</span></div>
-      <span className="rounded-md border bg-white px-3 py-1.5 text-[11px]" style={{ borderColor: R.line, color: "#4b5563" }}><i className="me-1.5 inline-block size-2 rounded-full" style={{ background: R.green }} />دراسة جدوى تنفيذية • صفحة {n} من 6</span>
+      <span className="rounded-md border bg-white px-3 py-1.5 text-[11px]" style={{ borderColor: R.line, color: "#4b5563" }}><i className="me-1.5 inline-block size-2 rounded-full" style={{ background: R.green }} />دراسة جدوى تنفيذية • صفحة {n} من 5</span>
     </div>
     <div className="space-y-5 p-4 sm:p-5">{children}</div>
   </div>
@@ -140,8 +145,8 @@ const Legend = ({ items }: { items: [string, string][] }) => (
   <div className="mt-2 flex flex-wrap gap-3 text-[11px]">{items.map(([c, l]) => <span key={l} className="inline-flex items-center gap-1.5"><i className="inline-block size-2.5 rounded-sm" style={{ background: c }} />{l}</span>)}</div>
 );
 
-export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system }: { kw: number[]; price: number; system?: CustomSystem | undefined; onBuy?: (() => void) | undefined; onEdit: () => void; onSales?: (() => void) | undefined }) {
-  const d = useMemo(() => design(kw, system), [kw, system]);
+export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system, project, target, scenarioLabel, autoDownload, onDownloaded, hideActions }: { kw: number[]; price: number; system?: CustomSystem | undefined; onBuy?: (() => void) | undefined; onEdit?: (() => void) | undefined; onSales?: (() => void) | undefined; project?: string | undefined; target?: number | undefined; scenarioLabel?: string | undefined; autoDownload?: boolean | undefined; onDownloaded?: (() => void) | undefined; hideActions?: boolean | undefined }) {
+  const d = useMemo(() => design(kw, system, target), [kw, system, target]);
   const e = econ(d.total, d.genE, d.capex, price0);
   const [price, setPrice] = useState(price0);
   const [load, setLoad] = useState(Math.round(d.total));
@@ -161,14 +166,28 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system }:
   const ys = (v: number) => P.t + (H - P.t - P.b) * (1 - v / 100);
   const fmtM = (m: number | null) => m === null ? "—" : m < 24 ? `${nf(m, 1)} شهر` : `${nf(m / 12, 1)} سنة`;
 
-  const download = () => {
-    const node = ref.current; if (!node) return;
-    const w = window.open("", "_blank"); if (!w) return;
-    const css = Array.from(document.querySelectorAll('link[rel="stylesheet"], style')).map((n) => n.outerHTML).join("");
-    w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>دراسة الجدوى الاقتصادية — ACTES</title><base href="${location.origin}/">${css}<style>@page{size:A4;margin:8mm}html,body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:12px}[data-noprint]{display:none!important}.report-page{break-after:page;page-break-after:always;break-inside:avoid;box-shadow:none!important;zoom:.68;max-height:none}.report-page:last-child{break-after:auto;page-break-after:auto}.report-page section{break-inside:avoid}.report-wrap>*+*{margin-top:0!important}</style></head><body><div class="report-wrap" style="width:1000px;margin:auto">${node.innerHTML}</div></body></html>`);
-    w.document.close();
-    setTimeout(() => { w.focus(); w.print(); }, 700);
+  const [busy, setBusy] = useState(false);
+  const download = async () => {
+    const node = ref.current; if (!node || busy) return;
+    setBusy(true);
+    try {
+      const [{ jsPDF }, { default: html2canvas }] = await Promise.all([import("jspdf"), import("html2canvas-pro")]);
+      const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+      const pages = Array.from(node.querySelectorAll<HTMLElement>(".report-page"));
+      for (let i = 0; i < pages.length; i++) {
+        const canvas = await html2canvas(pages[i]!, { scale: 2, backgroundColor: "#ffffff", useCORS: true, windowWidth: 1000 });
+        const pw = 210, ph = 297, m = 6;
+        let w = pw - m * 2, h = (canvas.height * w) / canvas.width;
+        if (h > ph - m * 2) { h = ph - m * 2; w = (canvas.width * h) / canvas.height; }
+        if (i) pdf.addPage();
+        pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", (pw - w) / 2, m, w, h);
+      }
+      const name = (project || "ACTES").replace(/[\\/:*?"<>|]+/g, " ").trim();
+      pdf.save(`دراسة_الجدوى_الاقتصادية-${name}${scenarioLabel ? `-${scenarioLabel}` : ""}.pdf`);
+    } finally { setBusy(false); onDownloaded?.(); }
   };
+  const started = useRef(false);
+  useEffect(() => { if (autoDownload && !started.current) { started.current = true; const t = setTimeout(() => { void download(); }, 400); return () => { clearTimeout(t); started.current = false; }; } return undefined; }, [autoDownload]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="space-y-5">
@@ -176,8 +195,8 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system }:
         <Page n={1}>
           <div className="grid items-start gap-6 lg:grid-cols-[1fr_380px]">
             <div>
-              <h2 className="text-3xl font-black leading-tight sm:text-5xl" style={{ color: R.ink }}>منظومة الطاقة الشمسية والتخزين</h2>
-              <p className="mt-2 text-3xl font-black leading-tight sm:text-5xl" style={{ color: R.red }}>{d.custom ? "منظومة العميل" : "المنظومة المقترحة"}</p>
+              <h2 className="text-3xl font-black leading-tight sm:text-5xl" style={{ color: R.ink }}>{project || "منظومة الطاقة الشمسية والتخزين"}</h2>
+              <p className="mt-2 text-3xl font-black leading-tight sm:text-5xl" style={{ color: R.red }}>{d.custom ? "منظومة العميل" : scenarioLabel || "المنظومة المقترحة"}</p>
               <p className="mt-4 text-sm" style={{ color: R.sub }}>دراسة فنية ومالية تنفيذية مقدمة من ACTES • إصدار {new Date().getFullYear()}</p>
             </div>
             <div className="rounded-xl border bg-white p-5 shadow-md lg:order-first" style={{ borderColor: R.line, borderTop: `5px solid ${R.red}` }}>
@@ -354,12 +373,19 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system }:
         </Page>
       </div>
 
-      <div className="flex flex-wrap gap-2" data-noprint>
-        <button type="button" onClick={download} className="inline-flex items-center gap-2 rounded-md bg-navy px-5 py-3 text-sm font-black text-primary-foreground"><Download className="size-4" /> تحميل التقرير التنفيذي PDF</button>
-        {onBuy && <button type="button" onClick={onBuy} className="rounded-md bg-energy px-5 py-3 text-sm font-black text-energy-foreground">طلب عرض سعر رسمي لهذه المنظومة</button>}
-        <button type="button" onClick={onEdit} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تعديل البيانات</button>
+      {!hideActions && <div className="flex flex-wrap gap-2" data-noprint>
+        <button type="button" onClick={() => void download()} disabled={busy} className="inline-flex items-center gap-2 rounded-md bg-navy px-5 py-3 text-sm font-black text-primary-foreground disabled:opacity-60"><Download className="size-4" /> {busy ? "جارٍ التحميل..." : "تحميل التقرير PDF"}</button>
+        {onBuy && <button type="button" onClick={onBuy} className="rounded-md bg-energy px-5 py-3 text-sm font-black text-energy-foreground">متابعة الشراء</button>}
+        {onEdit && <button type="button" onClick={onEdit} className="rounded-md border border-border px-4 py-2 text-xs font-bold">رجوع</button>}
         {onSales && <button type="button" onClick={onSales} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تواصل مع فريق أكتس</button>}
-      </div>
+      </div>}
     </div>
   );
+}
+
+/** ملخص سريع لسيناريو بنسبة تغطية مستهدفة — يُستخدم في بطاقات السيناريوهات. */
+export function ecoSummary(kw: number[], price: number, target: number) {
+  const d = design(kw, undefined, target);
+  const e = econ(d.total, d.genE, d.capex, price);
+  return { kwp: d.kwp, panelLabel: d.panelLabel, batKwh: d.batKwh, batLabel: d.batLabel, inv: `${d.invN} × ${d.invBrand} ${d.unit} kW`, invKw: d.unit * d.invN, capex: d.capex, saving: e.saving, months: e.months, cut: e.cut, savedL: e.savedL * 365, offH: 24 - d.genHours, peak: d.peak, total: d.total };
 }
