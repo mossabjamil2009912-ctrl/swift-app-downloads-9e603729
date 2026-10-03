@@ -2948,6 +2948,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     s += 'الحمل التشغيلي: ' + (ind.tot || '-') + ' kW | أكبر ماكينة: ' + (ind.maxm || '-') + ' kW | محرك إقلاع عالٍ: ' + (ind.motorkw ? ind.motorkw + ' kW' : 'لا') + '\n';
     s += 'ملف/صورة أحمال: ' + (ind.file ? 'نعم (مرفق في المحادثة)' : 'لا') + '\n';
     s += 'المصدر الحالي: ' + (IND_SRC[ind.src] || '-') + (ind.genkva ? ' — مولد ' + ind.genkva + ' kVA' : '') + (ind.diesel ? ' — ديزل ' + ind.diesel + ' لتر/يوم' : '') + (ind.pvold ? ' — PV حالي ' + ind.pvold + ' kWp' : '') + '\n';
+    s += 'الحمل الليلي: ' + (parseFloat(ind.nkw) || 0) + ' kW | تشغيل المحرك: ' + ((IND_STARTER[ind.starter] || {}).t || '-') + (parseFloat(ind.bill) > 0 ? ' | فاتورة: ' + ind.bill + ' ريال/شهر' : '') + '\n'
     s += 'الهدف: ' + (IND_GOAL[ind.goal] || '-') + '\n' + SEP + '\n';
     if (z) {
       s += 'المقترح: ' + z.kWp.toFixed(1) + ' kWp | ' + z.nInv + '× ' + z.inv.model + ' | بطاريات ' + z.nBat + '× ' + (z.nBat > 0 ? z.bat.model : '-') + '\n';
