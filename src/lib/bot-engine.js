@@ -2725,7 +2725,8 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
   // حالة المسار الصناعي محفوظة داخل main_loads بصيغة JSON: { l:[24], c:'', m:'', ind:{...} }
   var IND_ACTS = { '1': 'صناعات غذائية', '2': 'بلاستيك وتعبئة', '3': 'معادن وورش', '4': 'نسيج وملابس', '5': 'مواد بناء وخرسانة', '6': 'تبريد وتجميد', '7': 'أخرى' };
   var IND_SRC = { '1': 'مولد فقط', '2': 'شبكة + مولد', '3': 'شبكة فقط', '4': 'يوجد نظام شمسي' };
-  var IND_GOAL = { '1': 'تقليل تشغيل المولد والديزل', '2': 'نظام كامل 24 ساعة (هجين + بطاريات + ATS)', '3': 'ربط بالشبكة فقط (On-Grid)' };
+  var IND_GOAL = { '1': 'منظومة نهارية للوردية (بطاريات احتياطية محدودة)', '2': 'منظومة هجينة تغطي التشغيل الليلي (بطاريات + ATS)', '3': 'ربط بالشبكة فقط (On-Grid)' };
+  var IND_STARTER = { '1': { t: 'تشغيل مباشر / ستار-دلتا', f: 3 }, '2': { t: 'بادئ ناعم Soft Starter', f: 2 }, '3': { t: 'مغيّر سرعة VFD', f: 1.2 } };
   var IND_MAX_INV = 10; // أكبر عدد انفرترات قبل التحويل للموظف
   var IND_ATS_SIZES = [63, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600];
   function indDigits(t) { return String(t || '').replace(/[٠-٩]/g, function (dd) { return String('٠١٢٣٤٥٦٧٨٩'.indexOf(dd)); }).replace(/[۰-۹]/g, function (dd) { return String('۰۱۲۳۴۵۶۷۸۹'.indexOf(dd)); }); }
@@ -2829,7 +2830,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     var op = parseFloat(ind.tot) || 0;
     var nk = parseFloat(ind.nkw);
     var standby = Math.max(0.5, Math.round(op * 0.05 * 100) / 100);
-    var nightLoad = isNaN(nk) ? standby : Math.max(nk, standby * 0);
+    var nightLoad = isNaN(nk) ? standby : nk;
     for (var h = 0; h < 24; h++) {
       var night = (h < 6 || h >= 18);
       if (!night) { l.push(on[h] ? op : standby); }
@@ -2869,7 +2870,8 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
   function indAdjust(z, ind) {
     var op = parseFloat(ind.tot) || z.peak;
     var motor = parseFloat(ind.motorkw) || 0;
-    var startKw = motor > 0 ? (op - motor + motor * 3) : op * 1.25;
+    var sf = parseFloat(ind.sf) || 3;
+    var startKw = motor > 0 ? (op - motor + motor * sf) : op * 1.25;
     var needAc = Math.max(z.peak * 1.25, startKw);
     var nInv = z.nInv;
     if (z.inv.kwac * nInv < needAc) { nInv = Math.ceil(needAc / z.inv.kwac); }
@@ -2915,8 +2917,9 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     s += 'أولاً: التشغيل والأحمال\n';
     s += '• الورديات: ' + ind.shifts.length + ' — ' + hs.total + ' ساعة/يوم (نهار ' + hs.day + ' | ليل ' + hs.night + ')\n';
     s += '• الحمل التشغيلي: ' + (parseFloat(ind.tot) || 0) + ' kW | أكبر ماكينة: ' + (parseFloat(ind.maxm) || 0) + ' kW\n';
-    if (z.ind && z.ind.motor > 0) { s += '• تيار إقلاع: محرك ' + z.ind.motor + ' kW × 3 → قدرة مطلوبة ' + z.ind.needAc.toFixed(1) + ' kW\n'; }
-    s += '• الاستهلاك اليومي المصمم عليه: ' + z.daily.toFixed(1) + ' kWh (نهار ' + z.dayPct + '%)' + (ind.goal === '1' && hs.night > 0 ? ' — الورديات الليلية يغطيها المولد' : '') + '\n\n';
+    if (parseFloat(ind.nkw) > 0) { s += '• الحمل الليلي: ' + parseFloat(ind.nkw) + ' kW\n'; }
+    if (z.ind && z.ind.motor > 0) { s += '• تيار إقلاع: محرك ' + z.ind.motor + ' kW × ' + (parseFloat(ind.sf) || 3) + ' (' + ((IND_STARTER[ind.starter] || {}).t || 'تشغيل مباشر') + ') → قدرة مطلوبة ' + z.ind.needAc.toFixed(1) + ' kW\n'; }
+    s += '• الاستهلاك اليومي المصمم عليه: ' + z.daily.toFixed(1) + ' kWh (نهار ' + z.dayPct + '%)' + (ind.goal === '1' && hs.night > 0 ? ' — التشغيل الليلي يغطيه المولد' : '') + '\n\n';
     s += 'ثانياً: الألواح (PV)*\n' + z.nPan + ' × ' + z.pan.wp + ' وات = *' + z.kWp.toFixed(2) + ' kWp*\n' + z.pan.model + '\n\n';
     s += 'ثالثاً: الانفرترات\n' + z.nInv + ' × ' + z.inv.model + '\nالإجمالي: ' + (z.inv.kwac * z.nInv).toFixed(1) + ' kW — ' + (z.inv.ph === 3 ? 'ثلاثي الفاز' : 'أحادي الفاز') + '\n\n';
     s += 'رابعاً: البطاريات\n';
@@ -2931,6 +2934,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     if (z.diesel) {
       s += '\nسادساً: التوفير التقديري في الديزل\n' + z.diesel.savedDay + ' لتر/يوم ≈ *' + z.diesel.savedMonth + ' لتر/شهر (تغطية ' + z.diesel.pct + '%)\n';
     }
+    if (parseFloat(ind.bill) > 0) { s += '\nفاتورة الكهرباء الحالية: ' + Math.round(parseFloat(ind.bill)).toLocaleString('en-US') + ' ريال/شهر\n'; }
     s += SEP + '\nالمنظومة أعلاه تصميم أولي، ويُعتمد التصميم النهائي بعد مراجعة جدول الأحمال من الفريق الهندسي\n\nيمكنك إصدار عرض السعر الرسمي، أو طلب دراسة محاكاة الإنتاجية السنوية، أو المخطط التنفيذي للمنظومة';
     return W(s);
   }
@@ -3377,6 +3381,9 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     if (st === 'ind_gen_kva') { return indGenAsk(); }
     if (st === 'ind_diesel') { return indDieselAsk(); }
     if (st === 'ind_goal') { return indGoalAsk(); }
+    if (st === 'ind_night_kw') { return indNightAsk(); }
+    if (st === 'ind_starter') { return indStarterAsk(); }
+    if (st === 'ind_bill') { return indBillAsk(); }
     if (st === 'ind_result') { return indResultAsk(); }
     if (st === 'ind_quote_ask') { return m('quote_ask'); }
     if (st === 'agr_quote_ask') { return m('quote_next'); }
@@ -3473,6 +3480,9 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     if (st === 'ind_gen_kva') { return indGenAsk(); }
     if (st === 'ind_diesel') { return indDieselAsk(); }
     if (st === 'ind_goal') { return indGoalAsk(); }
+    if (st === 'ind_night_kw') { return indNightAsk(); }
+    if (st === 'ind_starter') { return indStarterAsk(); }
+    if (st === 'ind_bill') { return indBillAsk(); }
     if (st === 'ind_result') { return indResultAsk(); }
     if (st === 'ind_quote_ask') { return m('quote_ask'); }
     if (st === 'agr_quote_ask') { return m('quote_next'); }
@@ -3658,7 +3668,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     if (text === '1') { menu_choice = '1'; res_method = ''; step = 'res_bill'; response = resMethodAsk(); }
     else if (text === '2') { menu_choice = '2'; step = 'com_method'; response = comMethodAsk(); }
     else if (text === '3') { menu_choice = '4'; agrInit(); step = 'agr_pump_type'; response = agrPumpTypeAsk(); }
-    else if (text === '4') { menu_choice = '3'; indInit(customer_name || ''); step = 'ind_total_kw'; response = indTotalAsk(); }
+    else if (text === '4') { menu_choice = '3'; indInit(customer_name || ''); step = 'ind_activity'; response = indActivityAsk(); }
     else { response = noOpt(W(' اختر نوع المنظومة\n' + SEP + '\n1 - النظام السكني\n2 - النظام التجاري\n4 - النظام الصناعي\n3 - النظام الزراعي')); }
 
 
@@ -3774,7 +3784,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     else { response = noOpt(W('اختر نوع النظام:')); }
 
   } else if (step === 'menu_ind_agr') {
-    if (text === '1') { menu_choice = '3'; indInit(customer_name || ''); step = 'ind_total_kw'; response = indTotalAsk(); }
+    if (text === '1') { menu_choice = '3'; indInit(customer_name || ''); step = 'ind_activity'; response = indActivityAsk(); }
     else if (text === '2') { menu_choice = '4'; agrInit(); step = 'agr_pump_type'; response = agrPumpTypeAsk(); }
     else { response = noOpt(W('اختر نوع النظام:')); }
 
@@ -4741,11 +4751,11 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
         { id: 'src_3', title: 'شبكة فقط' }
       ] } ] };
     }
-    if (st === 'ind_goal') {
+    if (st === 'ind_starter' || st === 'ind_goal') {
       return { kind: 'buttons', buttons: [
-        { id: 'goal_1', title: 'تقليل الديزل' },
-        { id: 'goal_2', title: 'نظام كامل 24 ساعة' },
-        { id: 'goal_3', title: 'ربط بالشبكة' }
+        { id: 'starter_1', title: 'تشغيل مباشر / ستار-دلتا' },
+        { id: 'starter_2', title: 'بادئ ناعم Soft Starter' },
+        { id: 'starter_3', title: 'مغيّر سرعة VFD' }
       ] };
     }
     if (st === 'ind_result') {
@@ -4755,7 +4765,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
         { id: 'ind_sld', title: 'مخطط SLD' }
       ] };
     }
-    if (st === 'ind_gen_kva' || st === 'ind_diesel') {
+    if (st === 'ind_gen_kva' || st === 'ind_diesel' || st === 'ind_bill' || st === 'ind_night_kw') {
       return { kind: 'buttons', buttons: [ backBtn() ] };
     }
     if (st === 'ind_max_mach') {
