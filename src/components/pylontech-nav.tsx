@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, ChevronDown, ChevronLeft, Download, Globe, Menu, Search, ShieldCheck, X } from "lucide-react";
+import { ArrowRight, ChevronDown, Download, Globe, Menu, Search, ShieldCheck, X } from "lucide-react";
 import type { Product } from "@/lib/products-data";
 import { officialCatalogUrl } from "@/lib/official-catalogs";
 import actesLogo from "@/assets/actes-logo-full.webp";
@@ -16,34 +16,6 @@ const SOLUTIONS: Simple[] = [
   { t: "منصة Pylontech Cloud", d: "المراقبة السحابية", h: "#solutions" },
 ];
 
-// منتجات كل حل كما في القائمة الرسمية لموقع بايلونتك
-type MP = { t: string; slug: string };
-const BESS: MP[] = [
-  { t: "Force H3X", slug: "force-h3x" },
-  { t: "Fidus Battery", slug: "fidus-battery" },
-  { t: "Fidus Max", slug: "fidus-max" },
-  { t: "Fidus Battery Plus", slug: "fidus-battery-plus" },
-  { t: "US5000", slug: "us5000" },
-];
-const SOL_PRODUCTS: MP[][] = [
-  [{ t: "Force H3X", slug: "force-h3x" }],
-  BESS,
-  [
-    { t: "OPTIM US A100-HY", slug: "optim-us-a100-hy" },
-    { t: "OPTIM US A100-HY-PLUS", slug: "optim-us-a100-hy-plus" },
-    { t: "OPTIM US A300-HY", slug: "optim-us-a300-hy" },
-    { t: "OPTIM US L260-HY", slug: "optim-us-l260-hy" },
-    { t: "OPTIM US L260-OMNI", slug: "optim-us-l260-omni" },
-    { t: "OPTIM US L417-BAT", slug: "optim-us-l417-bat" },
-    { t: "OPTIM US L520-OMNI", slug: "optim-us-l520-omni" },
-  ],
-  [
-    { t: "US5000", slug: "us5000" },
-    { t: "Fidus Battery", slug: "fidus-battery" },
-    { t: "Force H3X", slug: "force-h3x" },
-  ],
-  [],
-];
 
 const MENUS: Menu[] = [
   {
@@ -102,10 +74,8 @@ function ActesCard({ a, onClick }: { a: Simple; onClick?: () => void }) {
 
 export function PylontechNav({ products }: { products: Product[] }) {
   const [open, setOpen] = useState<string | null>(null);
-  const [sel, setSel] = useState(0);
   const [mobile, setMobile] = useState(false);
   const [acc, setAcc] = useState<string | null>(null);
-  const shown = products.slice(0, 6);
   const close = () => { setOpen(null); setMobile(false); };
 
   return (
@@ -117,7 +87,7 @@ export function PylontechNav({ products }: { products: Product[] }) {
           <img src={actesLogo} alt="ACTES" className="h-9 w-auto" />
         </div>
         <nav className="hidden h-full items-stretch gap-7 text-[15px] lg:flex">
-          {[{ id: "solutions", label: "المنتجات والحلول", items: [] as Simple[] }, ...MENUS].map((m) => (
+          {[{ id: "solutions", label: "المنتجات والحلول", items: [...SOLUTIONS, { t: "جميع المنتجات", h: "#products" }] }, ...MENUS].map((m) => (
             <div key={m.id} className="relative flex" onMouseEnter={() => setOpen(m.id)}>
               <button onClick={() => setOpen(open === m.id ? null : m.id)}
                 className={`flex items-center gap-1 border-b-2 ${open === m.id ? "border-primary text-primary" : "border-transparent hover:text-primary"}`}>
@@ -141,42 +111,6 @@ export function PylontechNav({ products }: { products: Product[] }) {
         </div>
       </div>
 
-      {/* قوائم سطح المكتب */}
-      {open === "solutions" && (
-        <div className="absolute inset-x-0 top-16 hidden border-t border-border bg-background shadow-xl lg:block">
-          <div className="mx-auto flex min-h-[420px] max-w-7xl px-5">
-            <div className="w-[260px] shrink-0 border-l border-border py-10 pl-6 pr-10">
-              <p className="mb-5 text-lg font-medium">الحلول</p>
-              {SOLUTIONS.map((s, k) => (
-                <a key={s.t} href={s.h} onMouseEnter={() => setSel(k)} onClick={close}
-                  className={`flex items-center gap-2 py-2.5 text-sm ${sel === k ? "text-[#00a5b0]" : "hover:text-[#00a5b0]"}`}>
-                  <span>{s.t}</span>{sel === k && <ChevronLeft className="h-3.5 w-3.5" />}
-                </a>
-              ))}
-            </div>
-            <div className="flex-1 py-10 pr-12">
-              <a href="#products" onClick={close} className="mb-6 flex items-center gap-1 text-base font-medium hover:text-[#00a5b0]">جميع المنتجات <ChevronLeft className="h-4 w-4" /></a>
-              <p className="mb-5 text-sm text-[#00a5b0]">المنتجات</p>
-              {(SOL_PRODUCTS[sel] ?? []).length === 0 ? (
-                <p className="text-sm text-muted-foreground">لا توجد منتجات معروضة لهذا الحل حالياً.</p>
-              ) : (
-                <div className="grid grid-cols-4 gap-x-6 gap-y-6">
-                  {SOL_PRODUCTS[sel]!.map((p) => (
-                    <a key={p.slug} href="#products" onClick={close} className="w-[105px] text-center hover:text-[#00a5b0]">
-                      <img src={`/media/pylontech/menu/${p.slug}.webp`} alt={p.t} className="mx-auto h-16 w-auto object-contain" loading="lazy" />
-                      <p className="mt-2 text-xs" dir="ltr">{p.t}</p>
-                    </a>
-                  ))}
-                </div>
-              )}
-              <div className="mt-10 flex items-center gap-2 text-xs text-muted-foreground">
-                <img src={actesLogo} alt="ACTES" className="h-6 w-auto" />
-                <span>ACTES — الوكيل المعتمد لبايلونتك</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* قائمة الجوال */}
       {mobile && (

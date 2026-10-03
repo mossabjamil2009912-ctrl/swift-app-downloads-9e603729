@@ -19,21 +19,26 @@ export function BrandProductDetail({ product: p, accent, onClose }: { product: P
         <p className="font-bold" dir="ltr">{p.model.split(" ")[0]}</p>
         <button onClick={onClose} aria-label="إغلاق" className="rounded-full border border-border p-2 hover:bg-muted"><X className="h-5 w-5" /></button>
       </div>
-      <section className="relative overflow-hidden bg-foreground text-background">
-        {video && src ? (
-          <video src={src} poster={video.poster} autoPlay muted loop playsInline className="h-[60svh] w-full object-cover" />
-        ) : (
-          <div className="flex h-[50svh] items-center justify-center bg-muted"><img src={p.image} alt={p.name} className="max-h-[80%] object-contain" /></div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 to-transparent" />
-        <div className="absolute bottom-8 right-6 left-6 mx-auto max-w-7xl">
-          <p className="text-sm opacity-80" dir="ltr" style={{ textAlign: "right" }}>{p.brand}</p>
-          <h1 className="mt-1 text-3xl font-bold sm:text-5xl">{p.name}</h1>
-          <p className="mt-2 text-xl font-bold" style={{ color: accent }} dir="ltr">{p.power}</p>
+      {/* الصورة الرسمية للمنتج أولاً كما في موقع الشركة */}
+      <section className="bg-muted/40">
+        <div className="mx-auto grid max-w-7xl items-center gap-6 px-5 py-10 md:grid-cols-2">
+          <div className="text-right">
+            <p className="text-sm text-muted-foreground" dir="ltr" style={{ textAlign: "right" }}>{p.brand}</p>
+            <h1 className="mt-1 text-3xl font-bold sm:text-5xl" dir="ltr" style={{ textAlign: "right" }}>{p.model.split(" ")[0]}</h1>
+            <p className="mt-2 text-xl font-bold" style={{ color: accent }} dir="ltr">{p.power}</p>
+          </div>
+          <div className="flex items-center justify-center"><img src={p.image} alt={p.name} className="max-h-[45svh] object-contain" /></div>
         </div>
       </section>
+      {/* فيديو ووصف ACTES */}
       <section className="mx-auto grid max-w-7xl gap-8 px-5 py-12 md:grid-cols-2">
-        <div className="flex items-center justify-center rounded-2xl bg-muted p-6"><img src={p.image} alt={p.name} className="max-h-96 object-contain" /></div>
+        <div className="overflow-hidden rounded-2xl bg-muted">
+          {video && src ? (
+            <video src={src} poster={video.poster} autoPlay muted loop playsInline controls className="h-full max-h-[60svh] w-full object-cover" />
+          ) : (
+            <div className="flex h-72 items-center justify-center"><img src={p.image} alt={p.name} className="max-h-[80%] object-contain" /></div>
+          )}
+        </div>
         <div>
           <p className="text-sm text-muted-foreground" dir="ltr" style={{ textAlign: "right" }}>{p.model}</p>
           <p className="mt-4 leading-8">{p.about || p.description}</p>
