@@ -6,7 +6,7 @@ import { officialCatalogUrl } from "@/lib/official-catalogs";
 import { useResolvedVideoSrc } from "@/lib/video-source";
 
 /** صفحة منتج كاملة داخل مواقع العلامات: فيديو المنتج الحقيقي، الصور، المزايا، المواصفات والملفات الرسمية. */
-export function BrandProductDetail({ product: p, accent, onClose }: { product: Product; accent: string; onClose: () => void }) {
+export function BrandProductDetail({ product: p, accent, onClose, gallery }: { product: Product; accent: string; onClose: () => void; gallery?: string[] }) {
   const video = getProductVideo(p.baseId ?? p.id) ?? getProductVideo(p.id);
   const src = useResolvedVideoSrc(video?.src ?? "");
   const [tab, setTab] = useState(0);
@@ -49,6 +49,20 @@ export function BrandProductDetail({ product: p, accent, onClose }: { product: P
           </div>
         </div>
       </section>
+      {gallery && gallery.length > 0 && (
+        <section className="bg-muted/40 py-10">
+          <div className="mx-auto max-w-7xl px-5">
+            <h2 className="mb-5 text-xl font-bold">صور المنتج من {p.brand}</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {gallery.map((g) => <img key={g} src={g} alt={p.model} loading="lazy" className="h-56 w-full rounded-xl bg-background object-cover" />)}
+            </div>
+            <div className="mt-6 flex flex-wrap gap-2">
+              {ar && <a href={ar} target="_blank" rel="noreferrer" className="flex items-center gap-1 rounded-full px-4 py-2 text-sm text-background" style={{ background: accent }}><FileText className="h-4 w-4" />الكتالوج بالعربية (ACTES)</a>}
+              {en && <a href={en} target="_blank" rel="noreferrer" className="flex items-center gap-1 rounded-full border border-border bg-background px-4 py-2 text-sm"><Download className="h-4 w-4" />الكتالوج بالإنجليزية</a>}
+            </div>
+          </div>
+        </section>
+      )}
       <section className="mx-auto max-w-7xl px-5 pb-16">
         <div className="flex gap-6 border-b border-border">
           {tabs.map((t, i) => <button key={t} onClick={() => setTab(i)} className="-mb-px border-b-2 py-3 text-sm font-medium" style={{ borderColor: tab === i ? accent : "transparent", color: tab === i ? accent : undefined }}>{t}</button>)}

@@ -26,14 +26,14 @@ const ACCENT = "text-[#e60012]";
 const NAV = [
   { label: "من نحن", items: [["من نحن", "#about"], ["اتصل بنا", "#contact"]] },
   { label: "الأخبار", items: [["الأخبار 2026", "#news"]] },
-  { label: "المنتجات", items: [["الألواح Module", "#products"], ["التخزين Storage", "#storage"], ["الحلول Solutions", "#storage"]] },
+  { label: "المنتجات", items: [["الألواح Module", "#products"]] },
   { label: "المشاريع", items: [["محطات المرافق Utility", "#projects"], ["المشاريع التجارية والصناعية C&I", "#projects"], ["المنظومات السكنية Residential", "#projects"]] },
   { label: "التنزيلات", items: [["الملف التعريفي للشركة", "#downloads"], ["نشرات المنتجات Datasheet", "#downloads"], ["دليل التركيب", "#downloads"], ["ضمان المنتج", "#downloads"], ["شهادات الاعتماد", "#downloads"], ["الفيديو", "#about"]] },
 ] as const;
 
 const SLIDES = [
   { img: `${M}/banner-20260408.webp`, title: "ULTRA SERIES", sub: "ألواح Suntech الجديدة بتقنية N-Type عالية الكفاءة" },
-  { img: `${M}/SunStorage-banner-2-1.webp`, title: "SunStorage", sub: "حلول Suntech لتخزين الطاقة" },
+  { img: `${M}/solar-module-banner-bg.jpg`, title: "Ultra T 3.0", sub: "ألواح Quarter-cut جديدة — قدرة 670W وثنائية وجه 85±5%" },
 ];
 
 const STATS = [
@@ -219,25 +219,6 @@ function SuntechPage() {
         </div>
       </section>
 
-      <section id="storage" className="bg-muted/40 py-16">
-        <div className="mx-auto max-w-7xl px-5">
-          <div className="relative h-56 overflow-hidden rounded-lg md:h-72">
-            <img src={`${M}/SunStorage-banner-2-1.webp`} alt="SunStorage" className="h-full w-full object-cover" />
-            <div className="absolute inset-0 flex items-end bg-gradient-to-t from-foreground/70 to-transparent p-6 text-background">
-              <div><h2 className="text-3xl font-bold" dir="ltr">SunStorage</h2><p className="mt-1">منظومة تخزين متكاملة لكل التطبيقات</p></div>
-            </div>
-          </div>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {STORAGE.map((s) => (
-              <div key={s.t} className="rounded-lg border-t-2 border-[#e60012] bg-background p-5 shadow-sm">
-                <p className="text-xs text-muted-foreground">{s.s}</p>
-                <h3 className="mt-1 text-lg font-bold" dir="ltr" style={{ textAlign: "right" }}>{s.t}</h3>
-                <p className="mt-2 text-sm leading-7 text-muted-foreground">{s.d}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       <section id="projects" className="relative overflow-hidden py-20">
         <video src={`${M}/project-v-bg.mp4`} autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover opacity-20" />
