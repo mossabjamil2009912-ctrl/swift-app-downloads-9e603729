@@ -1,3 +1,4 @@
+import { AgencyBadge, AgencyShowcase } from "@/components/agency-showcase";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowRight, BatteryCharging, Cpu, FileText, Gauge, ShieldCheck, Sun, Wifi } from "lucide-react";
@@ -33,6 +34,7 @@ function LiPowerPage() {
   const [sel, setSel] = useState<Product | null>(null);
   return (
     <main dir="rtl" className="min-h-screen bg-background text-foreground">
+      <AgencyBadge brand="lipower" />
       <header className="sticky top-0 z-10 border-b border-border bg-card/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3"><img src={actesLogo} alt="ACTES" className="h-10 w-auto" /><span className="h-8 w-px bg-border" /><img src="/brand/makers/lipower.png" alt="Li-Power" className="h-7 w-auto" /></div>
@@ -74,6 +76,7 @@ function LiPowerPage() {
         </div>
       </section>
 
+      <AgencyShowcase brand="lipower" />
       <footer className="border-t border-border bg-card py-8 text-center text-sm text-muted-foreground">
         Li-Power — متوفر لدى ACTES لحلول أنظمة الطاقة
       </footer>

@@ -1,3 +1,4 @@
+import { AgencyBadge, AgencyShowcase } from "@/components/agency-showcase";
 import { createFileRoute} from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, FileText, Headphones, Mail } from "lucide-react";
@@ -83,6 +84,7 @@ function PylontechPage() {
 
   return (
     <main dir="rtl" className="min-h-screen bg-background text-foreground">
+      <AgencyBadge brand="pylontech" />
       {/* الترويسة */}
       <PylontechNav products={items} />
 
@@ -180,6 +182,7 @@ function PylontechPage() {
       </section>
 
       {/* الفوتر */}
+      <AgencyShowcase brand="pylontech" />
       <footer id="contact" className="scroll-mt-16 bg-foreground text-background">
         <div className="mx-auto grid max-w-7xl gap-8 px-5 py-14 sm:grid-cols-2 md:grid-cols-5">
           {FOOTER.map((c) => (

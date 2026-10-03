@@ -1,3 +1,4 @@
+import { AgencyBadge, AgencyShowcase } from "@/components/agency-showcase";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowRight, BatteryCharging, FileText, Flame, Gauge, Layers, ShieldCheck, Thermometer } from "lucide-react";
@@ -62,6 +63,7 @@ function HithiumPage() {
   const files = items.flatMap((p) => p.files.map((f) => ({ ...f, name: p.model || p.name, ar: f.url.replace("/catalogs/", "/catalogs/official-ar/") })));
   return (
     <main dir="rtl" className="min-h-screen bg-background text-foreground">
+      <AgencyBadge brand="hithium" />
       <header className="sticky top-0 z-10 border-b border-border bg-card/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-3"><img src={actesLogo} alt="ACTES" className="h-9 w-auto" /><span className="h-7 w-px bg-border" /><img src="/brand/makers/hithium.png" alt="HiTHIUM" className="h-6 w-auto" /></div>
@@ -116,6 +118,7 @@ function HithiumPage() {
         <p className="mt-4 text-center text-sm text-muted-foreground">للمزيد: <a href="https://www.hithium.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">الموقع الرسمي hithium.com</a></p>
       </section>
 
+      <AgencyShowcase brand="hithium" />
       <footer className="border-t border-border bg-card py-8 text-center text-sm text-muted-foreground">HiTHIUM — متوفر لدى ACTES لحلول أنظمة الطاقة</footer>
       {sel && <BrandProductDetail product={sel} accent="#00a0e9" gallery={["/media/hithium-legend-112s.jpg","/media/hithium-legend-112c.jpg","/media/items/battery-hithium-legnd-16kwh.jpg","/media/items/battery-hithium-12v-314ah.jpg"]} onClose={() => setSel(null)} />}
     </main>
