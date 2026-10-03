@@ -233,9 +233,21 @@ export function EcoSystemStudy({ onSales }: { onSales?: () => void }) {
   const reportKw = useLoads ? loadKw : spread(Math.max(1, dailyKwh)).map(Number);
   const sys: CustomSystem = { panelName: f.panel, panelW: n(f.panelW), panels: n(f.panelN), invName: f.inv, invKw: n(f.invKw), invN: n(f.invN), batName: f.bat, batUnit: n(f.batKwh), batN: n(f.batN), capex };
   const roi = capex > 0 ? Math.round((cum / capex) * 100) : 0;
+  const QUICK: Partial<Record<keyof typeof f, [string, string]>> = {
+    panel: ["Suntech", "Jinko"], panelW: ["720", "595"],
+    inv: ["Deye", "Solis"], invKw: ["12", "50"],
+    bat: ["Pylontech", "HiTHIUM"], batKwh: ["5.12", "16"],
+  };
   const field = (k: keyof typeof f, label: string, ph: string, num = false, opt = false) => (
     <label className="grid gap-1">
       <span className="text-xs font-bold">{label}{opt && <span className="text-muted-foreground"> (اختياري)</span>}</span>
+      {QUICK[k] && (
+        <span className="grid grid-cols-2 gap-1.5">
+          {QUICK[k]!.map((q) => (
+            <button key={q} type="button" onClick={() => setF({ ...f, [k]: q })} className={`rounded-md border px-2 py-1.5 text-xs font-bold transition ${f[k] === q ? "border-brand bg-brand text-brand-foreground" : "border-border bg-card hover:border-brand/50"}`}>{q}</button>
+          ))}
+        </span>
+      )}
       <input inputMode={num ? "decimal" : "text"} value={f[k]} placeholder={ph} onChange={(e) => setF({ ...f, [k]: e.target.value })} className="rounded-md border border-border bg-background px-3 py-2 text-sm" />
     </label>
   );
