@@ -165,7 +165,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
 
   function goWelcome() { return WELCOME_SERVICES_AR; }
   function energyWelcome() { return 'مرحباً بك في مسار حلول الطاقة\n' + SEP + '\nاختر الخدمة المطلوبة من الأزرار التالية:_'; }
-  function ecoModeMsg() { return ' دراسة الجدوى الاقتصادية\n' + SEP + '\nلنحسب لك 3 سيناريوهات للمنظومة المناسبة مع توفير الديزل وفترة الاسترداد.\nما البيانات المتوفرة لديك؟\n\n1 — بيانات استهلاك الديزل (لتر لكل ساعة)\n2 — بيانات الأحمال الكهربائية (kW لكل ساعة)_'; }
+  function ecoModeMsg() { return ' دراسة الجدوى الاقتصادية\n' + SEP + '\nلنحسب لك 3 سيناريوهات للمنظومة المناسبة مع توفير الديزل وفترة الاسترداد.\nما البيانات المتوفرة لديك؟\n\n1 — بيانات الديزل (لتر لكل ساعة)\n2 — بيانات الاحمال (kW لكل ساعة)_'; }
   function ecoHoursMsg(k) { return k === 'diesel' ? ' استهلاك الديزل الساعي\n' + SEP + '\nاكتب استهلاك المولد باللتر في كل ساعة من الساعات الأربع والعشرين._' : ' الأحمال الساعية\n' + SEP + '\nاكتب الحمل بالكيلووات في كل ساعة من الساعات الأربع والعشرين._'; }
   function goStart() { return WEL_AR; }
 
@@ -4602,8 +4602,8 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     }
     if (st === 'eco_mode') {
       return { kind: 'buttons', buttons: [
-        { id: 'eco_diesel', title: 'بيانات استهلاك الديزل' },
-        { id: 'eco_loads', title: 'بيانات الأحمال الكهربائية' },
+        { id: 'eco_diesel', title: 'بيانات الديزل' },
+        { id: 'eco_loads', title: 'بيانات الاحمال' },
         backBtn()
       ] };
     }

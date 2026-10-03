@@ -58,6 +58,7 @@ export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?:
   const [values, setValues] = useState<string[]>(() => Array(24).fill(""));
   const [price, setPrice] = useState("1.1");
   const [done, setDone] = useState(false);
+  const [same, setSame] = useState(false);
   const filled = values.filter((v) => v.trim() !== "" && !isNaN(Number(v))).length;
   const unit = mode === "diesel" ? "لتر/ساعة" : "kW";
 
@@ -70,16 +71,20 @@ export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?:
   if (!done) {
     return (
       <form onSubmit={(e) => { e.preventDefault(); if (filled === 24) setDone(true); }} className="rounded-lg border border-border bg-muted/35 p-5">
-        <p className="text-sm font-black">{mode === "diesel" ? "بيانات استهلاك الديزل اليومية" : "بيانات الأحمال اليومية"}</p>
+        <p className="text-sm font-black">{mode === "diesel" ? "بيانات الديزل" : "بيانات الاحمال"}</p>
         <p className="mt-1 text-xs text-muted-foreground">
           {mode === "diesel" ? "اكتب استهلاك المولد من الديزل في كل ساعة باللتر — اكتب 0 للساعات التي لا يعمل فيها" : "اكتب الحمل المتوقع في كل ساعة بالكيلووات (kW) — اكتب 0 للساعات بلا أحمال"}
         </p>
+        <label className="mt-3 flex cursor-pointer items-center gap-2 text-xs font-bold">
+          <input type="checkbox" checked={same} onChange={(e) => { const on = e.target.checked; setSame(on); if (on) { const v = values.find((x) => x.trim() !== "") ?? ""; setValues(Array(24).fill(v)); } }} className="size-4 accent-primary" />
+          اعتماد نفس القيمة لكل الساعات
+        </label>
         <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
           {values.map((v, i) => (
             <label key={i} className="grid gap-1">
               <span className="text-[11px] font-bold text-muted-foreground">{hourLabel(i)}</span>
               <div className="relative">
-                <input inputMode="decimal" value={v} onChange={(e) => setValues((p) => p.map((x, j) => (j === i ? e.target.value : x)))} className="w-full rounded-md border border-border bg-background px-3 py-2 pe-14 text-sm tabular-nums" placeholder="0" />
+                <input inputMode="decimal" value={v} onChange={(e) => { const val = e.target.value; setValues((p) => same ? Array(24).fill(val) : p.map((x, j) => (j === i ? val : x))); }} className="w-full rounded-md border border-border bg-background px-3 py-2 pe-14 text-sm tabular-nums" placeholder="0" />
                 <span className="pointer-events-none absolute inset-y-0 end-2 flex items-center text-[10px] text-muted-foreground">{unit}</span>
               </div>
             </label>
