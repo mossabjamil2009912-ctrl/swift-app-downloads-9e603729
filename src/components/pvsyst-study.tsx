@@ -932,9 +932,9 @@ export default function PvsystStudy({ study, actions }: Props) {
           <button
             type="button"
             onClick={actions.onBuy}
-            className="flex items-center justify-center gap-2 rounded-full bg-energy px-4 py-3 text-sm font-black text-energy-foreground shadow-sm ring-1 ring-black/5 transition hover:opacity-90"
+            className="flex items-center justify-center gap-2 rounded-full border border-border bg-card text-foreground hover:border-energy px-4 py-3 text-sm font-black shadow-sm transition"
           >
-            <ShoppingCart className="size-4" />
+            <ShoppingCart className="size-4 text-energy" />
             متابعة الشراء
           </button>
           <button

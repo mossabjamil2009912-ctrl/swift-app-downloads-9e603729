@@ -1774,10 +1774,10 @@ function QuoteWorkspace({ view, session, step, draft, setDraft, onPick, onBack, 
 
 // أزرار شاشة عرض السعر الرسمي: لكل خدمة لونها الخاص
 const QUOTE_ACTIONS: { id: string; title: string; note: string; icon: ReactNode; className: string; chip: string }[] = [
-  { id: "aq_buy", title: "متابعة الشراء", note: "إتمام طلب المنظومة", icon: <ShoppingCart />, className: "bg-energy text-energy-foreground", chip: "bg-energy-foreground/20" },
+  { id: "aq_buy", title: "متابعة الشراء", note: "إتمام طلب المنظومة", icon: <ShoppingCart />, className: "border border-border bg-card text-foreground", chip: "bg-energy/10 text-energy" },
   { id: "sales_contact", title: "التواصل مع المبيعات", note: "استفسار أو عرض رسمي", icon: <Headphones />, className: "border border-border bg-soft text-foreground", chip: "bg-brand/10 text-brand" },
   { id: "aq_study", title: "دراسة PVsyst", note: "دراسة إنتاجية تفصيلية", icon: <LineChart />, className: "border border-border bg-card text-foreground", chip: "bg-skyline text-skyline-foreground" },
-  { id: "aq_eco", title: "دراسة الجدوى الاقتصادية", note: "العائد والاسترداد والوفر البيئي", icon: <BadgeDollarSign />, className: "border border-border bg-card text-foreground", chip: "bg-emerald-600 text-white" },
+  { id: "aq_eco", title: "دراسة الجدوى الاقتصادية", note: "العائد والاسترداد والوفر البيئي", icon: <BadgeDollarSign />, className: "border border-border bg-card text-foreground", chip: "bg-energy/10 text-energy" },
   { id: "aq_sld", title: "مخطط SLD", note: "المخطط الكهربائي الأحادي", icon: <Network />, className: "border border-border bg-card text-foreground", chip: "bg-field text-field-foreground" },
 ];
 

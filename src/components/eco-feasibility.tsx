@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
-import { X, FileText, Download } from "lucide-react";
+import { ShoppingCart, useEffect, useMemo, useState } from "react";
+import { ShoppingCart, createPortal } from "react-dom";
+import { ShoppingCart, X, FileText, Download } from "lucide-react";
 import { EcoReport, ecoSummary, type CustomSystem } from "./eco-report";
 
 /** يعيد التمرير إلى رأس الشاشة عند الانتقال بين خطوات الدراسة. */
@@ -221,7 +221,7 @@ export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?:
         })}
       </div>
       {onBuy && (
-        <button type="button" onClick={() => onBuy(`${loadsText()}\nproject: ${project}\nscenario: ${levels[pick]!.label} — ${nf(s.kwp, 2)} kWp / ${nf(s.batKwh, 1)} kWh / ${s.inv}`)} className="w-full rounded-md bg-energy px-6 py-3 text-sm font-black text-energy-foreground">
+        <button type="button" onClick={() => onBuy(`${loadsText()}\nproject: ${project}\nscenario: ${levels[pick]!.label} — ${nf(s.kwp, 2)} kWp / ${nf(s.batKwh, 1)} kWh / ${s.inv}`)} className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-border bg-card text-foreground hover:border-energy px-6 py-3 text-sm font-black transition"><ShoppingCart className="size-4 text-energy" />
           متابعة الشراء — {levels[pick]!.label}
         </button>
       )}
