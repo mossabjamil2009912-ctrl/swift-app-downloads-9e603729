@@ -26,14 +26,14 @@ const ACCENT = "text-[#e60012]";
 const NAV = [
   { label: "من نحن", items: [["من نحن", "#about"], ["اتصل بنا", "#contact"]] },
   { label: "الأخبار", items: [["الأخبار 2026", "#news"]] },
-  { label: "المنتجات", items: [["الألواح Module", "#products"], ["التخزين Storage", "#storage"], ["الحلول Solutions", "#storage"]] },
+  { label: "المنتجات", items: [["الألواح Module", "#products"]] },
   { label: "المشاريع", items: [["محطات المرافق Utility", "#projects"], ["المشاريع التجارية والصناعية C&I", "#projects"], ["المنظومات السكنية Residential", "#projects"]] },
   { label: "التنزيلات", items: [["الملف التعريفي للشركة", "#downloads"], ["نشرات المنتجات Datasheet", "#downloads"], ["دليل التركيب", "#downloads"], ["ضمان المنتج", "#downloads"], ["شهادات الاعتماد", "#downloads"], ["الفيديو", "#about"]] },
 ] as const;
 
 const SLIDES = [
   { img: `${M}/banner-20260408.webp`, title: "ULTRA SERIES", sub: "ألواح Suntech الجديدة بتقنية N-Type عالية الكفاءة" },
-  { img: `${M}/SunStorage-banner-2-1.webp`, title: "SunStorage", sub: "حلول Suntech لتخزين الطاقة" },
+  { img: `${M}/solar-module-banner-bg.jpg`, title: "Ultra T 3.0", sub: "ألواح Quarter-cut جديدة — قدرة 670W وثنائية وجه 85±5%" },
 ];
 
 const STATS = [
@@ -49,12 +49,6 @@ const PROJECTS = [
   { k: "utility", t: "محطات المرافق", e: "Utility", img: `${M}/solar-module-banner-bg.jpg`, list: [] as string[][] },
   { k: "ci", t: "التجاري والصناعي", e: "Commercial & Industrial", img: `${M}/home-bg2-m.jpg`, list: [["مزرعة Mooshof المستقلة طاقياً", "Schwarzenberg · النمسا", "جائزة الطاقة الشمسية النمساوية 2025"]] },
   { k: "res", t: "السكني", e: "Residential", img: `${M}/home-bg3-m.jpg`, list: [["Huzhou Huaikan Rooftop", "Huzhou · الصين", "5 kW"], ["Kingspan Residential BIPV", "Waterford · إنجلترا", "4.8 kW"], ["Cosmo Town BIPV", "Saitama · اليابان", "237 kW"], ["Waterloo Rooftop", "Ottawa · كندا", "8 kW"]] },
-];
-
-const STORAGE = [
-  { t: "SunStorage Home", s: "السكني", d: "مركز طاقة منزلي ذكي بسعات من 6 حتى 54 kWh، للاستهلاك الذاتي وإدارة التعرفة والطاقة الاحتياطية مع تحويل فوري بالمللي ثانية." },
-  { t: "SunStorage PRO", s: "التجاري والصناعي", d: "حاوية تخزين متكاملة مبرّدة بالسائل مثل STE-1ML-500P (10 أقدام): بطاريات وتبريد وإطفاء حريق ووحدة تحويل STS للشبكة/المستقل." },
-  { t: "SunStorage MAX", s: "محطات المرافق", d: "حلول تخزين واسعة النطاق لمحطات الطاقة المتجددة الكبرى واستقرار الشبكة." },
 ];
 
 const TECH = [
@@ -219,25 +213,6 @@ function SuntechPage() {
         </div>
       </section>
 
-      <section id="storage" className="bg-muted/40 py-16">
-        <div className="mx-auto max-w-7xl px-5">
-          <div className="relative h-56 overflow-hidden rounded-lg md:h-72">
-            <img src={`${M}/SunStorage-banner-2-1.webp`} alt="SunStorage" className="h-full w-full object-cover" />
-            <div className="absolute inset-0 flex items-end bg-gradient-to-t from-foreground/70 to-transparent p-6 text-background">
-              <div><h2 className="text-3xl font-bold" dir="ltr">SunStorage</h2><p className="mt-1">منظومة تخزين متكاملة لكل التطبيقات</p></div>
-            </div>
-          </div>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {STORAGE.map((s) => (
-              <div key={s.t} className="rounded-lg border-t-2 border-[#e60012] bg-background p-5 shadow-sm">
-                <p className="text-xs text-muted-foreground">{s.s}</p>
-                <h3 className="mt-1 text-lg font-bold" dir="ltr" style={{ textAlign: "right" }}>{s.t}</h3>
-                <p className="mt-2 text-sm leading-7 text-muted-foreground">{s.d}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       <section id="projects" className="relative overflow-hidden py-20">
         <video src={`${M}/project-v-bg.mp4`} autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover opacity-20" />
@@ -310,7 +285,7 @@ function SuntechPage() {
         </div>
       </section>
 
-      {detailP && <BrandProductDetail product={detailP} accent="#e60012" onClose={() => setDetail(null)} />}
+      {detailP && <BrandProductDetail product={detailP} accent="#e60012" gallery={[`${M}/solar-module-banner.png`, `${M}/banner-20260408.webp`, `${M}/solar-module-banner-bg.jpg`]} onClose={() => setDetail(null)} />}
       <footer className="bg-foreground py-8 text-sm text-background/70">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5">
           <p dir="ltr">©Copyright. Wuxi Suntech Power Co., Ltd. All Rights Reserved.</p>
