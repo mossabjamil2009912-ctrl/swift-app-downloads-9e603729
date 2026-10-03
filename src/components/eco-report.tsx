@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Download } from "lucide-react";
+import { ShoppingCart, Download } from "lucide-react";
 
 // تقرير دراسة الجدوى التنفيذي — مقارنة وضع المولد فقط بالمنظومة المقترحة (شمس + تخزين)
 const PSH = 5.5, PR = 0.8, KWH_PER_L = 3.3, DOD = 0.9, CO2_PER_L = 2.68;
@@ -375,7 +375,7 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system, p
 
       {!hideActions && <div className="flex flex-wrap gap-2" data-noprint>
         <button type="button" onClick={() => void download()} disabled={busy} className="inline-flex items-center gap-2 rounded-md bg-navy px-5 py-3 text-sm font-black text-primary-foreground disabled:opacity-60"><Download className="size-4" /> {busy ? "جارٍ التحميل..." : "تحميل التقرير PDF"}</button>
-        {onBuy && <button type="button" onClick={onBuy} className="rounded-md bg-energy px-5 py-3 text-sm font-black text-energy-foreground">متابعة الشراء</button>}
+        {onBuy && <button type="button" onClick={onBuy} className="inline-flex items-center gap-2 rounded-md border border-border bg-card text-foreground hover:border-energy px-5 py-3 text-sm font-black transition"><ShoppingCart className="size-4 text-energy" />متابعة الشراء</button>}
         {onEdit && <button type="button" onClick={onEdit} className="rounded-md border border-border px-4 py-2 text-xs font-bold">رجوع</button>}
         {onSales && <button type="button" onClick={onSales} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تواصل مع فريق أكتس</button>}
       </div>}

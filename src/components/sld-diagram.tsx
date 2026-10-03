@@ -2511,9 +2511,9 @@ export default function SldDiagram({ params, number, actions }: Props) {
           <button
             type="button"
             onClick={actions.onBuy}
-            className="flex items-center justify-center gap-2 rounded-full bg-energy px-4 py-3 text-xs font-black text-energy-foreground transition hover:opacity-90"
+            className="flex items-center justify-center gap-2 rounded-full border border-border bg-card text-foreground hover:border-energy px-4 py-3 text-xs font-black shadow-sm transition"
           >
-            <ShoppingCart className="size-4" /> متابعة الشراء
+            <ShoppingCart className="size-4 text-energy" /> متابعة الشراء
           </button>
           <button
             type="button"
