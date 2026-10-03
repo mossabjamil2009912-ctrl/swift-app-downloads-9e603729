@@ -108,7 +108,7 @@ const Page = ({ n, children }: { n: number; children: React.ReactNode }) => (
       <div className="flex items-center gap-3"><img src={LOGO} alt="ACTES" className="h-9 w-auto object-contain" /><span dir="ltr" className="hidden text-[11px] font-black tracking-wide sm:inline" style={{ color: "#4b5563" }}>ENERGY SYSTEMS & SOLUTIONS</span></div>
       <span className="rounded-md border bg-white px-3 py-1.5 text-[11px]" style={{ borderColor: R.line, color: "#4b5563" }}><i className="me-1.5 inline-block size-2 rounded-full" style={{ background: R.green }} />دراسة جدوى تنفيذية • صفحة {n} من 6</span>
     </div>
-    <div className="space-y-8 p-4 sm:p-7">{children}</div>
+    <div className="space-y-5 p-4 sm:p-5">{children}</div>
   </div>
 );
 
@@ -165,7 +165,7 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system }:
     const node = ref.current; if (!node) return;
     const w = window.open("", "_blank"); if (!w) return;
     const css = Array.from(document.querySelectorAll('link[rel="stylesheet"], style')).map((n) => n.outerHTML).join("");
-    w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>دراسة الجدوى الاقتصادية — ACTES</title><base href="${location.origin}/">${css}<style>@page{size:A4;margin:10mm}body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}[data-noprint]{display:none!important}.report-page{break-after:page;box-shadow:none!important}</style></head><body><div style="max-width:900px;margin:auto">${node.innerHTML}</div></body></html>`);
+    w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>دراسة الجدوى الاقتصادية — ACTES</title><base href="${location.origin}/">${css}<style>@page{size:A4;margin:8mm}html,body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:12px}[data-noprint]{display:none!important}.report-page{break-after:page;page-break-after:always;break-inside:avoid;box-shadow:none!important;zoom:.68;max-height:none}.report-page:last-child{break-after:auto;page-break-after:auto}.report-page section{break-inside:avoid}.report-wrap>*+*{margin-top:0!important}</style></head><body><div class="report-wrap" style="width:1000px;margin:auto">${node.innerHTML}</div></body></html>`);
     w.document.close();
     setTimeout(() => { w.focus(); w.print(); }, 700);
   };
@@ -347,11 +347,11 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system }:
           </div>
         </Sec>
         <p className="text-center text-[11px]" style={{ color: R.sub }}>الأرقام تقديرية: {PSH} ساعات ذروة شمسية، {KWH_PER_L} kWh لكل لتر ديزل.</p>
-        </Page>
-        <footer className="flex flex-wrap items-center justify-between gap-3 rounded-xl px-5 py-5" style={{ background: R.ink }}>
-          <div className="flex items-center gap-3"><span className="rounded bg-white px-2 py-1"><img src={LOGO} alt="ACTES" className="h-8 w-auto" /></span><b dir="ltr" className="text-sm" style={{ color: "#fff" }}>ACTES Energy Systems & Solutions</b></div>
+        <footer className="flex flex-wrap items-center justify-between gap-3 rounded-xl px-5 py-4" style={{ background: R.ink }}>
+          <div className="flex items-center gap-3"><span className="rounded bg-white px-2 py-1"><img src={LOGO} alt="ACTES" className="h-7 w-auto" /></span><b dir="ltr" className="text-sm" style={{ color: "#fff" }}>ACTES Energy Systems & Solutions</b></div>
           <span className="text-[12px]" style={{ color: "#9ca3af" }}>من إعداد شركة أكتس لأنظمة الطاقة وحلولها</span>
         </footer>
+        </Page>
       </div>
 
       <div className="flex flex-wrap gap-2" data-noprint>
