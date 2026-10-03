@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Download } from "lucide-react";
 
 // تقرير دراسة الجدوى التنفيذي — مقارنة وضع المولد فقط بالمنظومة المقترحة (شمس + تخزين)
@@ -378,7 +378,7 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system, p
         {onBuy && <button type="button" onClick={onBuy} className="rounded-md bg-energy px-5 py-3 text-sm font-black text-energy-foreground">متابعة الشراء</button>}
         {onEdit && <button type="button" onClick={onEdit} className="rounded-md border border-border px-4 py-2 text-xs font-bold">رجوع</button>}
         {onSales && <button type="button" onClick={onSales} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تواصل مع فريق أكتس</button>}
-      </div>
+      </div>}
     </div>
   );
 }
