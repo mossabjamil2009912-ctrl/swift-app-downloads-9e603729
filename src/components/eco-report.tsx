@@ -145,8 +145,8 @@ const Legend = ({ items }: { items: [string, string][] }) => (
   <div className="mt-2 flex flex-wrap gap-3 text-[11px]">{items.map(([c, l]) => <span key={l} className="inline-flex items-center gap-1.5"><i className="inline-block size-2.5 rounded-sm" style={{ background: c }} />{l}</span>)}</div>
 );
 
-export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system }: { kw: number[]; price: number; system?: CustomSystem | undefined; onBuy?: (() => void) | undefined; onEdit: () => void; onSales?: (() => void) | undefined }) {
-  const d = useMemo(() => design(kw, system), [kw, system]);
+export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system, project, target, scenarioLabel, autoDownload, onDownloaded, hideActions }: { kw: number[]; price: number; system?: CustomSystem | undefined; onBuy?: (() => void) | undefined; onEdit?: (() => void) | undefined; onSales?: (() => void) | undefined; project?: string | undefined; target?: number | undefined; scenarioLabel?: string | undefined; autoDownload?: boolean | undefined; onDownloaded?: (() => void) | undefined; hideActions?: boolean | undefined }) {
+  const d = useMemo(() => design(kw, system, target), [kw, system, target]);
   const e = econ(d.total, d.genE, d.capex, price0);
   const [price, setPrice] = useState(price0);
   const [load, setLoad] = useState(Math.round(d.total));
@@ -166,14 +166,28 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system }:
   const ys = (v: number) => P.t + (H - P.t - P.b) * (1 - v / 100);
   const fmtM = (m: number | null) => m === null ? "—" : m < 24 ? `${nf(m, 1)} شهر` : `${nf(m / 12, 1)} سنة`;
 
-  const download = () => {
-    const node = ref.current; if (!node) return;
-    const w = window.open("", "_blank"); if (!w) return;
-    const css = Array.from(document.querySelectorAll('link[rel="stylesheet"], style')).map((n) => n.outerHTML).join("");
-    w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>دراسة الجدوى الاقتصادية — ACTES</title><base href="${location.origin}/">${css}<style>@page{size:A4;margin:8mm}html,body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:12px}[data-noprint]{display:none!important}.report-page{break-after:page;page-break-after:always;break-inside:avoid;box-shadow:none!important;zoom:.68;max-height:none}.report-page:last-child{break-after:auto;page-break-after:auto}.report-page section{break-inside:avoid}.report-wrap>*+*{margin-top:0!important}</style></head><body><div class="report-wrap" style="width:1000px;margin:auto">${node.innerHTML}</div></body></html>`);
-    w.document.close();
-    setTimeout(() => { w.focus(); w.print(); }, 700);
+  const [busy, setBusy] = useState(false);
+  const download = async () => {
+    const node = ref.current; if (!node || busy) return;
+    setBusy(true);
+    try {
+      const [{ jsPDF }, { default: html2canvas }] = await Promise.all([import("jspdf"), import("html2canvas-pro")]);
+      const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+      const pages = Array.from(node.querySelectorAll<HTMLElement>(".report-page"));
+      for (let i = 0; i < pages.length; i++) {
+        const canvas = await html2canvas(pages[i]!, { scale: 2, backgroundColor: "#ffffff", useCORS: true, windowWidth: 1000 });
+        const pw = 210, ph = 297, m = 6;
+        let w = pw - m * 2, h = (canvas.height * w) / canvas.width;
+        if (h > ph - m * 2) { h = ph - m * 2; w = (canvas.width * h) / canvas.height; }
+        if (i) pdf.addPage();
+        pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", (pw - w) / 2, m, w, h);
+      }
+      const name = (project || "ACTES").replace(/[\\/:*?"<>|]+/g, " ").trim();
+      pdf.save(`دراسة_الجدوى_الاقتصادية-${name}${scenarioLabel ? `-${scenarioLabel}` : ""}.pdf`);
+    } finally { setBusy(false); onDownloaded?.(); }
   };
+  const started = useRef(false);
+  useEffect(() => { if (autoDownload && !started.current) { started.current = true; const t = setTimeout(() => { void download(); }, 400); return () => clearTimeout(t); } }, [autoDownload]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="space-y-5">
@@ -181,8 +195,8 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system }:
         <Page n={1}>
           <div className="grid items-start gap-6 lg:grid-cols-[1fr_380px]">
             <div>
-              <h2 className="text-3xl font-black leading-tight sm:text-5xl" style={{ color: R.ink }}>منظومة الطاقة الشمسية والتخزين</h2>
-              <p className="mt-2 text-3xl font-black leading-tight sm:text-5xl" style={{ color: R.red }}>{d.custom ? "منظومة العميل" : "المنظومة المقترحة"}</p>
+              <h2 className="text-3xl font-black leading-tight sm:text-5xl" style={{ color: R.ink }}>{project || "منظومة الطاقة الشمسية والتخزين"}</h2>
+              <p className="mt-2 text-3xl font-black leading-tight sm:text-5xl" style={{ color: R.red }}>{d.custom ? "منظومة العميل" : scenarioLabel || "المنظومة المقترحة"}</p>
               <p className="mt-4 text-sm" style={{ color: R.sub }}>دراسة فنية ومالية تنفيذية مقدمة من ACTES • إصدار {new Date().getFullYear()}</p>
             </div>
             <div className="rounded-xl border bg-white p-5 shadow-md lg:order-first" style={{ borderColor: R.line, borderTop: `5px solid ${R.red}` }}>
@@ -359,10 +373,10 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system }:
         </Page>
       </div>
 
-      <div className="flex flex-wrap gap-2" data-noprint>
-        <button type="button" onClick={download} className="inline-flex items-center gap-2 rounded-md bg-navy px-5 py-3 text-sm font-black text-primary-foreground"><Download className="size-4" /> تحميل التقرير التنفيذي PDF</button>
-        {onBuy && <button type="button" onClick={onBuy} className="rounded-md bg-energy px-5 py-3 text-sm font-black text-energy-foreground">طلب عرض سعر رسمي لهذه المنظومة</button>}
-        <button type="button" onClick={onEdit} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تعديل البيانات</button>
+      {!hideActions && <div className="flex flex-wrap gap-2" data-noprint>
+        <button type="button" onClick={() => void download()} disabled={busy} className="inline-flex items-center gap-2 rounded-md bg-navy px-5 py-3 text-sm font-black text-primary-foreground disabled:opacity-60"><Download className="size-4" /> {busy ? "جارٍ التحميل..." : "تحميل التقرير PDF"}</button>
+        {onBuy && <button type="button" onClick={onBuy} className="rounded-md bg-energy px-5 py-3 text-sm font-black text-energy-foreground">متابعة الشراء</button>}
+        {onEdit && <button type="button" onClick={onEdit} className="rounded-md border border-border px-4 py-2 text-xs font-bold">رجوع</button>}
         {onSales && <button type="button" onClick={onSales} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تواصل مع فريق أكتس</button>}
       </div>
     </div>
