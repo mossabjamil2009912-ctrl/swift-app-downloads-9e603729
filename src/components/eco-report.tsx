@@ -11,23 +11,28 @@ const C = { sun: "#f5a01e", bat: "#15803d", gen: "#c0392b", load: "#1c3f94", gri
 
 type Hour = { h: number; load: number; pv: number; direct: number; batOut: number; charge: number; gen: number; soc: number };
 
-function design(kw: number[]) {
+export type CustomSystem = { panelName: string; panelW: number; panels: number; invName: string; invKw: number; invN: number; batName: string; batUnit: number; batN: number; capex: number };
+
+function design(kw: number[], sys?: CustomSystem) {
   const total = kw.reduce((s, v) => s + v, 0);
   const peak = Math.max(...kw, 0);
   const day = kw.reduce((s, v, h) => s + (h >= 7 && h < 17 ? v : 0), 0);
   const evening = kw.reduce((s, v, h) => s + (h >= 17 && h < 22 ? v : 0), 0) + (kw[6] ?? 0);
-  const mods = Math.max(evening > 0 ? 1 : 0, Math.ceil(evening / DOD / BAT_MOD));
-  const batKwh = mods * BAT_MOD;
+  const mods = sys ? sys.batN : Math.max(evening > 0 ? 1 : 0, Math.ceil(evening / DOD / BAT_MOD));
+  const batKwh = sys ? sys.batN * sys.batUnit : mods * BAT_MOD;
   const racks = Math.ceil(mods / RACK);
-  const panels = Math.ceil(((day + evening / 0.95) / (PSH * PR)) * 1000 / PANEL_W);
-  const kwp = (panels * PANEL_W) / 1000;
-  const unit = peak > 100 ? 125 : peak > 20 ? 50 : peak > 12 ? 20 : peak > 8 ? 12 : 8;
-  const invN = Math.max(1, Math.ceil((peak * 1.25) / unit));
-  const invBrand = unit >= 125 ? "Solis" : "Deye";
+  const panels = sys ? sys.panels : Math.ceil(((day + evening / 0.95) / (PSH * PR)) * 1000 / PANEL_W);
+  const kwp = (panels * (sys ? sys.panelW : PANEL_W)) / 1000;
+  const unit = sys ? sys.invKw : peak > 100 ? 125 : peak > 20 ? 50 : peak > 12 ? 20 : peak > 8 ? 12 : 8;
+  const invN = sys ? sys.invN : Math.max(1, Math.ceil((peak * 1.25) / unit));
+  const invBrand = sys ? sys.invName : unit >= 125 ? "Solis" : "Deye";
+  const pvKw = sys ? Math.min(kwp, unit * invN * 1.3) : kwp;
+  const panelLabel = sys ? `${panels} لوح ${sys.panelName} ${sys.panelW}W` : `${panels} لوح سنتك ${PANEL_W}W`;
+  const batLabel = sys ? (batKwh > 0 ? `${mods} بطارية ${sys.batName} ${sys.batUnit}kWh` : "بدون بطاريات") : `${racks} راك × ${mods} بطارية ${BAT_MOD}kWh`;
   // منحنى الإنتاج الشمسي (جيبي من 6 إلى 18)
   const shape = Array.from({ length: 24 }, (_, h) => (h >= 6 && h < 18 ? Math.sin((Math.PI * (h + 0.5 - 6)) / 12) : 0));
   const sSum = shape.reduce((a, b) => a + b, 0);
-  const pv = shape.map((s) => (kwp * PSH * PR * s) / sSum);
+  const pv = shape.map((s) => (pvKw * PSH * PR * s) / sSum);
   const cap = batKwh, min = cap * (1 - DOD);
   let soc = cap;
   let hours: Hour[] = [];
@@ -55,10 +60,10 @@ function design(kw: number[]) {
   const batE = hours.reduce((s, x) => s + x.batOut, 0);
   const sunH = hours.filter((x) => x.gen <= 0.001 && x.direct >= x.batOut && x.load > 0).length;
   return {
-    total, peak, kwp, panels, batKwh, mods, racks, invN, unit, invBrand, hours, genE, genHours, baseHours,
+    total, peak, kwp, panels, panelLabel, batLabel, custom: !!sys, batKwh, mods, racks, invN, unit, invBrand, hours, genE, genHours, baseHours,
     sunH, batH: Math.max(0, baseHours - genHours - sunH),
     clean: total > 0 ? ((directE + batE) / total) * 100 : 0, solarPct: total > 0 ? (directE / total) * 100 : 0,
-    capex: Math.round(kwp * PV_USD_KWP + batKwh * BAT_USD_KWH + invN * unit * INV_USD_KW),
+    capex: sys ? sys.capex : Math.round(kwp * PV_USD_KWP + batKwh * BAT_USD_KWH + invN * unit * INV_USD_KW),
   };
 }
 
@@ -119,8 +124,8 @@ const Legend = ({ items }: { items: [string, string][] }) => (
   <div className="mt-2 flex flex-wrap gap-3 text-[11px]">{items.map(([c, l]) => <span key={l} className="inline-flex items-center gap-1.5"><i className="inline-block size-2.5 rounded-sm" style={{ background: c }} />{l}</span>)}</div>
 );
 
-export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales }: { kw: number[]; price: number; onBuy?: (() => void) | undefined; onEdit: () => void; onSales?: (() => void) | undefined }) {
-  const d = useMemo(() => design(kw), [kw]);
+export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system }: { kw: number[]; price: number; system?: CustomSystem | undefined; onBuy?: (() => void) | undefined; onEdit: () => void; onSales?: (() => void) | undefined }) {
+  const d = useMemo(() => design(kw, system), [kw, system]);
   const e = econ(d.total, d.genE, d.capex, price0);
   const [price, setPrice] = useState(price0);
   const [load, setLoad] = useState(Math.round(d.total));
@@ -156,7 +161,7 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales }: { kw: n
         <section className="overflow-hidden rounded-xl bg-navy text-primary-foreground">
           <div className="p-5 sm:p-7">
             <div className="flex items-center justify-between gap-3 text-[11px] font-bold opacity-80"><span>دراسة جدوى تنفيذية • إصدار {new Date().getFullYear()}</span><span dir="ltr">ACTES ENERGY SYSTEMS & SOLUTIONS</span></div>
-            <h2 className="mt-4 text-2xl font-black leading-tight sm:text-3xl">منظومة الطاقة الشمسية والتخزين</h2>
+            <h2 className="mt-4 text-2xl font-black leading-tight sm:text-3xl">منظومة الطاقة الشمسية والتخزين{d.custom ? " — منظومة العميل" : ""}</h2>
             <p className="mt-1 text-xs opacity-80">دراسة فنية ومالية تنفيذية مقدمة من ACTES</p>
             <div className="mt-5 rounded-lg bg-primary-foreground/10 p-4">
               <p className="text-xs font-black">ملخص الاستثمار</p>
@@ -172,8 +177,8 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales }: { kw: n
 
         <Sec n="01" kicker="لوحة المؤشرات" title="الأثر التنفيذي" note="المؤشرات الأساسية للمنظومة المقترحة، محسوبة على أساس التشغيل السنوي الكامل.">
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-5">
-            <Kpi t="إجمالي القدرة الشمسية" v={`${nf(d.kwp, 2)} kWp`} s={`${d.panels} لوح ${PANEL_W}W`} />
-            <Kpi t="سعة التخزين المركبة" v={`${nf(d.batKwh)} kWh`} s={`${d.racks} راك × ${d.mods} بطارية ${BAT_MOD}kWh`} />
+            <Kpi t="إجمالي القدرة الشمسية" v={`${nf(d.kwp, 2)} kWp`} s={d.panelLabel} />
+            <Kpi t="سعة التخزين المركبة" v={`${nf(d.batKwh)} kWh`} s={d.batLabel} />
             <Kpi t="التغطية النظيفة" v={`${nf(d.clean)} %`} s={`من حمل يومي ${nf(d.total)} kWh`} />
             <Kpi t="إيقاف المولد" v={`${offH} ساعة/يوم`} s={`${nf(offH * 365)} ساعة سنوياً`} />
             <Kpi t="توفير الديزل" v={`${nf(e.savedL * 365)} لتر/سنة`} s={`≈ ${nf(e.savedL)} لتر/يوم`} />
@@ -209,11 +214,11 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales }: { kw: n
               <tbody>
                 {[
                   ["نوع المنظومة", "مولدات ديزل فقط", "منظومة هجينة متكاملة Solar + BESS"],
-                  ["الألواح الشمسية", "لا يوجد", `${d.panels} لوح سنتك ${PANEL_W}W`],
+                  ["الألواح الشمسية", "لا يوجد", d.panelLabel],
                   ["قدرة الألواح", "0 kWp", `${nf(d.kwp, 2)} kWp`],
                   ["الإنفرترات", "لا يوجد", `${d.invN} وحدة ${d.invBrand} × ${d.unit} kW`],
-                  ["بطاريات الليثيوم", "لا يوجد", `${d.mods} بطارية ${BAT_MOD}kWh — ${nf(d.batKwh)} kWh (${nf(d.batKwh * DOD)} kWh عند ${DOD * 100}% DoD)`],
-                  ["راكات التخزين", "لا يوجد", `${d.racks} راك`],
+                  ["بطاريات الليثيوم", "لا يوجد", `${d.batLabel} — ${nf(d.batKwh)} kWh (${nf(d.batKwh * DOD)} kWh عند ${DOD * 100}% DoD)`],
+                  ...(d.custom ? [] : [["راكات التخزين", "لا يوجد", `${d.racks} راك`]]),
                   ["ساعات تشغيل المولد", `${d.baseHours} ساعة/يوم`, `${d.genHours} ساعة/يوم (إيقاف ${offH} ساعة)`],
                   ["استهلاك الديزل اليومي", `${nf(e.baseL)} لتر`, `${nf(e.newL)} لتر/يوم`],
                   ["استهلاك الديزل السنوي", `${nf(e.baseL * 365)} لتر`, `${nf(e.newL * 365)} لتر (توفير ${nf(e.savedL * 365)} لتر)`],
