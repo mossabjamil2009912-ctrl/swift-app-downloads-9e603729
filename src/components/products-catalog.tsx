@@ -93,10 +93,9 @@ function CategoriesScreen({ onPick, onBack }: { onPick: (c: ProductCategory | "a
         <BackButton onClick={onBack} label="الرئيسية" />
       </header>
 
-      <div className="stagger-in grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="stagger-in grid grid-cols-2 gap-2.5 md:grid-cols-4">
         {CATEGORIES.map((cat) => {
           const items = productsByCategory(cat.id);
-          const brands = Array.from(new Set(items.map((p) => p.brand)));
           const previewIds = PREVIEW_IDS[cat.id];
           const preview = previewIds
             ? previewIds.map((id) => items.find((p) => p.id === id)).filter((p): p is Product => Boolean(p))
@@ -106,31 +105,25 @@ function CategoriesScreen({ onPick, onBack }: { onPick: (c: ProductCategory | "a
               key={cat.id}
               type="button"
               onClick={() => onPick(cat.id)}
-              className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card text-right shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl"
+              className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card text-right shadow-sm transition hover:border-navy/40 hover:shadow-md"
             >
-              <span className={`flex items-center justify-between gap-2 px-3 py-3 ${CAT_TONE[cat.id]}`}>
-                <span className="text-right">
-                  <span className="block text-sm font-black leading-tight lg:text-base">{cat.title}</span>
+              <span className="flex items-center gap-2.5 border-b border-border/70 px-3 py-2.5">
+                <span className={`grid size-8 shrink-0 place-items-center rounded-md [&_svg]:size-4 ${CAT_TONE[cat.id]}`}>{CAT_BIG_ICON[cat.id]}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13px] font-black leading-tight text-navy lg:text-sm">{cat.title}</span>
+                  <span className="mt-0.5 block text-[10.5px] font-semibold text-muted-foreground">{items.length} موديل</span>
                 </span>
-                <span className="shrink-0 opacity-90 transition group-hover:scale-110 [&_svg]:size-7">{CAT_BIG_ICON[cat.id]}</span>
               </span>
-              <span className="flex flex-1 flex-col gap-2 p-2.5">
-                <span className="grid grid-cols-3 gap-1 text-center">
-                  {preview.map((p) => (
-                    <span key={p.id} className="overflow-hidden rounded-md border border-border/70 bg-background p-0.5">
-                      <img src={p.image} alt={p.name} loading="lazy" className="aspect-square w-full scale-105 object-contain" />
-                    </span>
-                  ))}
-                </span>
-                <span className="hidden flex-wrap gap-1.5">
-                  {brands.map((b) => (
-                    <span key={b} className="rounded-full bg-navy-soft px-2.5 py-0.5 text-[11px] font-bold text-navy" dir="ltr">{b}</span>
-                  ))}
-                </span>
-                <span className="mt-auto flex items-center justify-between gap-1 border-t border-border/70 pt-2">
-                  <span className="inline-flex items-center gap-1 text-[11px] font-black text-navy"><Layers className="size-3.5 text-skyline" /> {items.length} موديل</span>
-                  <ArrowRight className="size-4 text-brand" />
-                </span>
+              <span className="grid grid-cols-3 gap-1 bg-muted/40 p-2">
+                {preview.map((p) => (
+                  <span key={p.id} className="overflow-hidden rounded border border-border/60 bg-card">
+                    <img src={p.image} alt={p.name} loading="lazy" className="aspect-square w-full object-contain p-0.5" />
+                  </span>
+                ))}
+              </span>
+              <span className="flex items-center justify-between border-t border-border/70 px-3 py-2 text-[11px] font-bold text-navy">
+                استعراض القسم
+                <ArrowRight className="size-3.5 rotate-180 text-muted-foreground transition group-hover:text-navy" />
               </span>
             </button>
           );
@@ -138,18 +131,14 @@ function CategoriesScreen({ onPick, onBack }: { onPick: (c: ProductCategory | "a
         <button
           type="button"
           onClick={() => onPick("all")}
-          className="group flex flex-col justify-between gap-4 overflow-hidden rounded-2xl border border-border bg-card p-5 text-right shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl order-first col-span-2 md:col-span-4"
+          className="group order-first col-span-2 flex items-center gap-3 rounded-lg border border-border bg-card px-3.5 py-3 text-right shadow-sm transition hover:border-navy/40 hover:shadow-md md:col-span-4"
         >
-          <span className="flex items-center justify-between">
-            <span>
-              <span className="block text-2xl font-black text-navy lg:text-3xl">كل المنتجات</span>
-              <span className="mt-1 block text-[12px] font-bold text-muted-foreground">ابحث في جميع الموديلات وصفّها حسب الشركة المصنّعة</span>
-            </span>
-            <Search className="size-10 text-skyline lg:size-12" />
+          <span className="grid size-9 shrink-0 place-items-center rounded-md bg-navy-soft text-navy"><Search className="size-4" /></span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-black text-navy lg:text-base">كل المنتجات</span>
+            <span className="block text-[11px] font-semibold text-muted-foreground">ابحث في جميع الموديلات وصفّها حسب الشركة المصنّعة</span>
           </span>
-          <span className="inline-flex w-fit items-center gap-1 rounded-full bg-brand px-3 py-1.5 text-xs font-bold text-brand-foreground">
-            <ArrowRight className="size-3.5" /> استعراض الكل
-          </span>
+          <ArrowRight className="size-4 rotate-180 text-muted-foreground transition group-hover:text-navy" />
         </button>
       </div>
     </div>
@@ -306,28 +295,29 @@ function ProductCard({ product, onOpen }: { product: Product; onOpen: () => void
     <article
       onPointerEnter={warm}
       onTouchStart={warm}
-      className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card text-right shadow-sm transition hover:shadow-md"
+      className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card text-right shadow-sm transition hover:border-navy/40 hover:shadow-md"
     >
       <BrandBadge brand={product.brand} />
-      <button type="button" onClick={() => { warm(); onOpen(); }} aria-label={product.name} className="relative block aspect-[4/5] w-full overflow-hidden bg-background">
-        <img src={product.image} alt={product.name} loading="lazy" decoding="async" width={800} height={1000} className="size-full scale-105 object-contain p-1 transition duration-500 group-hover:scale-110" />
+      <button type="button" onClick={() => { warm(); onOpen(); }} aria-label={product.name} className="relative block aspect-square w-full overflow-hidden bg-background">
+        <img src={product.image} alt={product.name} loading="lazy" decoding="async" width={800} height={800} className="size-full object-contain p-2 transition duration-500 group-hover:scale-105" />
       </button>
 
-      <div className="flex flex-1 flex-col gap-0.5 border-t border-border/70 px-2.5 pb-2.5 pt-2">
-        <span className="text-[9px] font-bold text-skyline lg:text-[10px]">{product.brand}</span>
-        <h3 className="line-clamp-2 text-[10.5px] font-bold leading-tight text-navy lg:text-[12px]">{product.name}</h3>
-        <p className="line-clamp-1 text-[9px] text-muted-foreground lg:text-[10px]" dir="ltr">{product.model}</p>
-        <span className="mt-0.5 inline-flex w-fit items-center gap-1 rounded-full bg-navy-soft px-2 py-0.5 text-[11px] font-black text-navy lg:text-xs" dir="ltr">
-          <Zap className="size-3" />{product.power}
-        </span>
-        <button type="button" onClick={() => { warm(); onOpen(); }} className="mt-auto inline-flex w-full items-center justify-center gap-1 rounded-full bg-brand px-2 py-1.5 text-[11px] font-bold text-brand-foreground shadow-sm transition hover:opacity-90 lg:text-xs">
-          <ArrowRight className="size-3.5" /> عرض المنتج
-        </button>
-        {arCatalog && (
-          <button type="button" onClick={() => setViewAr(true)} className="mt-1 inline-flex w-full items-center justify-center gap-1 rounded-full bg-navy-soft px-2 py-1.5 text-[11px] font-bold text-navy transition hover:opacity-90 lg:text-xs">
-            <FileText className="size-3.5" /> كتالوج المنتج بالعربية
+      <div className="flex flex-1 flex-col gap-1 border-t border-border/70 px-2.5 pb-2.5 pt-2">
+        <h3 className="line-clamp-2 text-[11px] font-black leading-tight text-navy lg:text-[12.5px]">{product.name}</h3>
+        <div className="flex items-center justify-between gap-1" dir="ltr">
+          <span className="truncate text-[9.5px] font-semibold text-muted-foreground lg:text-[10.5px]">{product.model}</span>
+          <span className="shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] font-black text-navy lg:text-[11px]">{product.power}</span>
+        </div>
+        <div className="mt-auto flex gap-1 pt-1">
+          <button type="button" onClick={() => { warm(); onOpen(); }} className="inline-flex flex-1 items-center justify-center gap-1 rounded-md bg-navy px-2 py-1.5 text-[11px] font-bold text-primary-foreground transition hover:opacity-90 lg:text-xs">
+            عرض المنتج
           </button>
-        )}
+          {arCatalog && (
+            <button type="button" onClick={() => setViewAr(true)} aria-label="كتالوج المنتج بالعربية" title="كتالوج المنتج بالعربية" className="grid size-8 shrink-0 place-items-center rounded-md border border-border text-navy transition hover:bg-muted">
+              <FileText className="size-3.5" />
+            </button>
+          )}
+        </div>
         {viewAr && arCatalog && <PdfViewer file={{ kind: "Datasheet", label: `كتالوج ${product.model} (عربي)`, url: arCatalog }} onClose={() => setViewAr(false)} />}
       </div>
     </article>
