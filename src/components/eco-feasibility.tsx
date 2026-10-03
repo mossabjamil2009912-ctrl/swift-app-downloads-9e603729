@@ -54,7 +54,10 @@ function compute(kw: number[], dieselPrice: number): Scenario[] {
   });
 }
 
-export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?: () => void; onBuy?: () => void }) {
+const INV_SIZES = [8, 12, 16, 20, 50];
+const invPkg = (kw: number) => INV_SIZES.find((s) => s >= kw) ?? 50;
+
+export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?: () => void; onBuy?: (loads: string) => void }) {
   const [values, setValues] = useState<string[]>(() => Array(24).fill(""));
   const [price, setPrice] = useState("1.1");
   const [done, setDone] = useState(false);
@@ -65,6 +68,7 @@ export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?:
   const kw = useMemo(() => values.map((v) => { const n = Math.max(0, Number(v) || 0); return mode === "diesel" ? n * KWH_PER_L : n; }), [values, mode]);
   const dp = Math.max(0, Number(price) || 0);
   const scenarios = useMemo(() => compute(kw, dp), [kw, dp]);
+  const rec = scenarios.find((s) => s.recommended);
   const daily = kw.reduce((s, v) => s + v, 0);
   const dailyL = daily / KWH_PER_L;
 
@@ -135,10 +139,25 @@ export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?:
           </div>
         ))}
       </div>
+      {rec && (
+        <div className="rounded-lg border-2 border-primary bg-primary/5 p-4">
+          <p className="text-[11px] font-bold text-primary">المنظومة المناسبة لك</p>
+          <p className="mt-1 text-base font-black">منظومة هجينة تجارية {nf(rec.kwp, 1)} kWp</p>
+          <div className="mt-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-3">
+            <div className="rounded-md bg-background p-2.5">الانفرتر<br /><b>Deye {invPkg(rec.inv)} kW{invPkg(rec.inv) >= 20 ? " — 3 فاز" : ""}</b></div>
+            <div className="rounded-md bg-background p-2.5">الألواح<br /><b>Suntech — {Math.ceil((rec.kwp * 1000) / 720)} لوح 720W</b></div>
+            <div className="rounded-md bg-background p-2.5">البطاريات<br /><b>ليثيوم {nf(rec.bat, 1)} kWh</b></div>
+          </div>
+          {onBuy && (
+            <button type="button" onClick={() => onBuy(kw.map((v, h) => `${h}: ${Math.round(v * 100) / 100}`).join("\n"))} className="mt-4 w-full rounded-md bg-energy px-6 py-3 text-sm font-black text-energy-foreground sm:w-auto">
+              طلب عرض سعر رسمي لهذه المنظومة
+            </button>
+          )}
+        </div>
+      )}
       <p className="text-[11px] text-muted-foreground">الأرقام تقديرية: {PSH} ساعات ذروة شمسية، {KWH_PER_L} kWh لكل لتر ديزل، وأسعار معدات متوسطة. السعر النهائي يُحدد في عرض السعر.</p>
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={() => setDone(false)} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تعديل البيانات</button>
-        {onBuy && <button type="button" onClick={onBuy} className="rounded-md bg-skyline px-4 py-2 text-xs font-bold text-skyline-foreground">طلب عرض سعر</button>}
         {onSales && <button type="button" onClick={onSales} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تواصل مع فريق أكتس</button>}
       </div>
     </div>
