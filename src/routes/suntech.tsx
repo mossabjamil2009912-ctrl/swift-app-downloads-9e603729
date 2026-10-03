@@ -45,16 +45,41 @@ const STATS = [
 const MODULES = ["STPXXXS-H48-N(kh,th,fb)+", "STPXXXS-H54-N(kh, th, fb)+", "STPXXXS-H66-Nsh+", "STPXXXS-D66-Nsh+", "STP-NT11/48QGD(S)F", "STP-NT11/66QGDF"];
 
 const PROJECTS = [
-  { t: "محطات المرافق", e: "Utility", img: `${M}/solar-module-banner-bg.jpg` },
-  { t: "التجاري والصناعي", e: "Commercial & Industrial", img: `${M}/home-bg2-m.jpg` },
-  { t: "السكني", e: "Residential", img: `${M}/home-bg3-m.jpg` },
+  { k: "utility", t: "محطات المرافق", e: "Utility", img: `${M}/solar-module-banner-bg.jpg`, list: [] as string[][] },
+  { k: "ci", t: "التجاري والصناعي", e: "Commercial & Industrial", img: `${M}/home-bg2-m.jpg`, list: [["مزرعة Mooshof المستقلة طاقياً", "Schwarzenberg · النمسا", "جائزة الطاقة الشمسية النمساوية 2025"]] },
+  { k: "res", t: "السكني", e: "Residential", img: `${M}/home-bg3-m.jpg`, list: [["Huzhou Huaikan Rooftop", "Huzhou · الصين", "5 kW"], ["Kingspan Residential BIPV", "Waterford · إنجلترا", "4.8 kW"], ["Cosmo Town BIPV", "Saitama · اليابان", "237 kW"], ["Waterloo Rooftop", "Ottawa · كندا", "8 kW"]] },
 ];
+
+const STORAGE = [
+  { t: "SunStorage Home", s: "السكني", d: "مركز طاقة منزلي ذكي بسعات من 6 حتى 54 kWh، للاستهلاك الذاتي وإدارة التعرفة والطاقة الاحتياطية مع تحويل فوري بالمللي ثانية." },
+  { t: "SunStorage PRO", s: "التجاري والصناعي", d: "حاوية تخزين متكاملة مبرّدة بالسائل مثل STE-1ML-500P (10 أقدام): بطاريات وتبريد وإطفاء حريق ووحدة تحويل STS للشبكة/المستقل." },
+  { t: "SunStorage MAX", s: "محطات المرافق", d: "حلول تخزين واسعة النطاق لمحطات الطاقة المتجددة الكبرى واستقرار الشبكة." },
+];
+
+const TECH = [
+  ["+26%", "كفاءة خلايا N-Type TOPCon"],
+  ["−0.29%/°C", "معامل حرارة منخفض — إنتاج أعلى 3–4% من PERC"],
+  ["حتى 30%", "إنتاج إضافي من الوجه الخلفي (Bifacial)"],
+  ["30 سنة", "ضمان خطي: 1% أول سنة ثم 0.40% سنوياً"],
+];
+
+const NEWS = [
+  { d: "14 سبتمبر 2026", t: "SunStorage PRO STE-1ML-500P يدخل السوق الأوكرانية", u: "https://www.suntech-power.com/suntech-sunstorage-pro-ste-1ml-500p-to-make-its-debut-in-the-ukrainian-market/" },
+  { d: "7 أغسطس 2026", t: "طاقة أذكى بحلول الطاقة الشمسية + التخزين المتكاملة", u: "https://www.suntech-power.com/empowering-smarter-energy-with-integrated-solar-storage-solutions/" },
+  { d: "22 يوليو 2026", t: "عقدان من الثقة: مزرعة نمساوية مستقلة طاقياً بألواح Suntech", u: "https://www.suntech-power.com/two-decades-of-trust-how-suntech-helps-power-austrias-energy-independent-farm/" },
+  { d: "10 يوليو 2026", t: "Suntech تستعرض Ultra T 3.0 وSunStorage في منتدى TaiyangNews", u: "https://www.suntech-power.com/suntech-highlights-pv-and-energy-storage-innovations-at-taiyangnews-global-technology-forum/" },
+];
+
+const DL_TABS = ["نشرات المنتجات", "الملف التعريفي", "دليل التركيب", "ضمان المنتج", "شهادات الاعتماد"] as const;
+const DL_URL = "https://www.suntech-power.com/download/";
 
 function SuntechPage() {
   const items = PRODUCTS.filter((p) => p.brand === "Suntech");
   const [slide, setSlide] = useState(0);
   const [open, setOpen] = useState<number | null>(null);
   const [mobile, setMobile] = useState(false);
+  const [proj, setProj] = useState(0);
+  const [tab, setTab] = useState(0);
   useEffect(() => {
     const t = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), 7000);
     return () => clearInterval(t);
@@ -173,12 +198,38 @@ function SuntechPage() {
         </div>
       </section>
 
-      <section id="storage" className="relative h-[60vh] min-h-[380px] overflow-hidden">
-        <img src={`${M}/SunStorage-banner-2-1.webp`} alt="SunStorage" className="h-full w-full object-cover" />
-        <div className="absolute inset-0 flex items-end bg-gradient-to-t from-foreground/70 to-transparent">
-          <div className="mx-auto w-full max-w-7xl px-5 pb-12 text-background">
-            <h2 className="text-3xl font-bold">التخزين والحلول Storage & Solutions</h2>
-            <p className="mt-2">أنظمة تخزين الطاقة وحلول الألواح حسب نوع المشروع.</p>
+      <section className="py-16">
+        <div className="mx-auto max-w-7xl px-5">
+          <p className={`text-sm font-semibold ${ACCENT}`} dir="ltr" style={{ textAlign: "right" }}>ULTRA T TECHNOLOGY</p>
+          <h2 className="mt-1 text-2xl font-bold">تقنيات سلسلة Ultra</h2>
+          <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+            {TECH.map(([v, l]) => (
+              <div key={l} className="rounded-lg border border-border p-4">
+                <p className={`text-2xl font-bold ${ACCENT}`} dir="ltr" style={{ textAlign: "right" }}>{v}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{l}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-xs text-muted-foreground">شهادات مقاومة رذاذ الملح IEC 61701 والأمونيا IEC 62716 والغبار والرمال — تحمل رياح 2400 Pa وثلوج 5400 Pa.</p>
+        </div>
+      </section>
+
+      <section id="storage" className="bg-muted/40 py-16">
+        <div className="mx-auto max-w-7xl px-5">
+          <div className="relative h-56 overflow-hidden rounded-lg md:h-72">
+            <img src={`${M}/SunStorage-banner-2-1.webp`} alt="SunStorage" className="h-full w-full object-cover" />
+            <div className="absolute inset-0 flex items-end bg-gradient-to-t from-foreground/70 to-transparent p-6 text-background">
+              <div><h2 className="text-3xl font-bold" dir="ltr">SunStorage</h2><p className="mt-1">منظومة تخزين متكاملة لكل التطبيقات</p></div>
+            </div>
+          </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {STORAGE.map((s) => (
+              <div key={s.t} className="rounded-lg border-t-2 border-[#e60012] bg-background p-5 shadow-sm">
+                <p className="text-xs text-muted-foreground">{s.s}</p>
+                <h3 className="mt-1 text-lg font-bold" dir="ltr" style={{ textAlign: "right" }}>{s.t}</h3>
+                <p className="mt-2 text-sm leading-7 text-muted-foreground">{s.d}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -188,15 +239,34 @@ function SuntechPage() {
         <div className="relative mx-auto max-w-7xl px-5">
           <h2 className="text-center text-3xl font-bold">خريطة مشاريع Suntech</h2>
           <p className="mt-2 text-center text-sm text-muted-foreground" dir="ltr">SUNTECH PROJECT MAP</p>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {PROJECTS.map((p) => (
-              <div key={p.e} className="group relative h-80 overflow-hidden rounded-lg">
-                <img src={p.img} alt={p.e} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-                <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-foreground/70 to-transparent p-5 text-background">
-                  <p className="text-xl font-bold">{p.t}</p>
-                  <p className="text-sm" dir="ltr" style={{ textAlign: "right" }}>{p.e}</p>
-                </div>
+          <div className="mt-6 flex justify-center gap-2">
+            {PROJECTS.map((p, i) => <button key={p.k} onClick={() => setProj(i)} className={`rounded-full border px-4 py-1.5 text-sm ${proj === i ? "border-[#e60012] bg-[#e60012] text-background" : "border-border bg-background"}`}>{p.t}</button>)}
+          </div>
+          {(() => { const p = PROJECTS[proj]!; return (
+            <div className="mt-8 grid gap-6 md:grid-cols-2">
+              <div className="relative h-72 overflow-hidden rounded-lg">
+                <img src={p.img} alt={p.e} className="h-full w-full object-cover" />
+                <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-foreground/70 to-transparent p-5 text-background"><p className="text-xl font-bold">{p.t}</p><p className="text-sm" dir="ltr" style={{ textAlign: "right" }}>{p.e}</p></div>
               </div>
+              <div className="space-y-3">
+                {p.list.length ? p.list.map(([n, l, c]) => (
+                  <div key={n} className="flex items-center justify-between rounded border border-border bg-background p-4 text-sm"><div><p className="font-medium" dir="ltr" style={{ textAlign: "right" }}>{n}</p><p className="text-xs text-muted-foreground">{l}</p></div><span className={`font-bold ${ACCENT}`}>{c}</span></div>
+                )) : <a href="https://www.suntech-power.com/projects/" target="_blank" rel="noreferrer" className="block rounded border border-border bg-background p-4 text-sm">عرض مشاريع المرافق على الموقع الرسمي</a>}
+              </div>
+            </div>
+          ); })()}
+        </div>
+      </section>
+
+      <section id="news" className="py-16">
+        <div className="mx-auto max-w-7xl px-5">
+          <h2 className="text-2xl font-bold">الأخبار 2026</h2>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {NEWS.map((n) => (
+              <a key={n.u} href={n.u} target="_blank" rel="noreferrer" className="rounded-lg border border-border p-4 hover:border-[#e60012]">
+                <p className="text-xs text-muted-foreground">{n.d}</p>
+                <p className="mt-2 text-sm font-medium leading-6">{n.t}</p>
+              </a>
             ))}
           </div>
         </div>
@@ -205,14 +275,18 @@ function SuntechPage() {
       <section id="downloads" className="bg-muted/40 py-16">
         <div className="mx-auto max-w-7xl px-5">
           <h2 className="text-2xl font-bold">التنزيلات</h2>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {DL_TABS.map((t, i) => <button key={t} onClick={() => setTab(i)} className={`rounded-full border px-4 py-1.5 text-sm ${tab === i ? "border-[#e60012] bg-[#e60012] text-background" : "border-border bg-background"}`}>{t}</button>)}
+          </div>
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {items.flatMap((p) => [["ar", "عربي"], ["en", "EN"]].map(([l, lab]) => {
+            {tab === 0 ? items.flatMap((p) => [["ar", "عربي"], ["en", "EN"]].map(([l, lab]) => {
               const u = officialCatalogUrl(p, l as "ar" | "en");
               return u ? <a key={p.id + l} href={u} target="_blank" rel="noreferrer" className="flex items-center justify-between rounded border border-border bg-background p-4 text-sm hover:border-[#e60012]"><span dir="ltr">{p.model.split(" ")[0]} Datasheet</span><span className="flex items-center gap-1 text-muted-foreground"><Download className="h-4 w-4" />{lab}</span></a> : null;
-            }))}
-            {["الملف التعريفي للشركة", "دليل التركيب", "ضمان المنتج", "شهادات الاعتماد"].map((t) => (
-              <a key={t} href="https://www.suntech-power.com/downloads/" target="_blank" rel="noreferrer" className="flex items-center justify-between rounded border border-border bg-background p-4 text-sm hover:border-[#e60012]"><span>{t}</span><span className="text-xs text-muted-foreground">الموقع الرسمي</span></a>
-            ))}
+            })) : tab === 1 ? (
+              <a href="https://www.suntech-power.com/wp-content/uploads/download/Publicity-Material/EN-Suntech-Product-Brochure.pdf" target="_blank" rel="noreferrer" className="flex items-center justify-between rounded border border-border bg-background p-4 text-sm hover:border-[#e60012]"><span>دليل منتجات Suntech 2026</span><span className="flex items-center gap-1 text-muted-foreground"><Download className="h-4 w-4" />PDF</span></a>
+            ) : (
+              <a href={DL_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between rounded border border-border bg-background p-4 text-sm hover:border-[#e60012]"><span>{DL_TABS[tab]}</span><span className="text-xs text-muted-foreground">الموقع الرسمي</span></a>
+            )}
           </div>
         </div>
       </section>
