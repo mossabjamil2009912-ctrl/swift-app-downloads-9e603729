@@ -1738,7 +1738,7 @@ function QuoteWorkspace({ view, session, step, draft, setDraft, onPick, onBack, 
                   : step === "pv_loads"
                     ? <HourlyLoadEntry onSubmit={onPick} />
                     : step === "eco_diesel_hours" || step === "eco_loads_hours"
-                    ? <EcoFeasibility key={step} mode={step === "eco_diesel_hours" ? "diesel" : "loads"} onBuy={() => onPick("quote_start")} onSales={() => onPick("team")} />
+                    ? <EcoFeasibility key={step} mode={step === "eco_diesel_hours" ? "diesel" : "loads"} onBuy={(loads) => onPick(`eco_quote\n${loads}`)} onSales={() => onPick("team")} />
                     : <DataEntry value={draft} onChange={setDraft} prompt={entryPrompt(step, session)} onSubmit={submit} presets={entryPresets(step, session)} onQuick={onPick} />)}
                 {visibleOptions.length > 0 && <OptionGrid options={visibleOptions} selected={selected} projectCards={isProjectSelection} energyCards={isEnergyMenu} itemCards={isItemCards} onSelect={(value) => { onPick(value); }} />}
               </div>
@@ -1827,7 +1827,7 @@ function OptionGrid({ options, selected, projectCards = false, energyCards = fal
   // شاشة حلول الطاقة: بطاقتان عريضتان واضحتان تملآن الشاشة
   if (energyCards) {
     const energyVisual = (title: string) =>
-      /جدوى/.test(title)
+      /جدوى|الاقتص/.test(title)
         ? { icon: BadgeDollarSign, subtitle: "العائد وتوفير الديزل وفترة الاسترداد.", action: "ابدأ الدراسة", tone: "bg-energy/15 text-energy", ring: "hover:border-energy" }
         : /pvsyst|دراسة/i.test(title)
         ? { icon: LineChart, subtitle: "محاكاة إنتاجية المنظومة وأدائها على مدار العام.", action: "ابدأ الدراسة", tone: "bg-skyline/15 text-skyline", ring: "hover:border-skyline" }
@@ -1846,7 +1846,7 @@ function OptionGrid({ options, selected, projectCards = false, energyCards = fal
             >
               <span className={`grid size-9 shrink-0 place-items-center rounded-lg ${visual.tone}`}><Icon className="size-4.5" /></span>
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <strong className="text-sm font-black leading-5">{option.title}</strong>
+                <strong className="whitespace-normal break-words text-sm font-black leading-5">{option.id === "eco_study" ? "دراسة الجدوى الاقتصادية" : option.id === "pv_study" ? "دراسة PVsyst" : option.title.replace(/…$/, "")}</strong>
                 <small className="text-[11px] font-semibold leading-4 text-muted-foreground">{visual.subtitle}</small>
                 <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-black text-brand">
                   {visual.action} <ArrowLeft className="size-3.5 transition group-hover:-translate-x-0.5" />

@@ -3652,7 +3652,25 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     else if (text === 'eco_loads' || text === '2') { step = 'eco_loads_hours'; response = ecoHoursMsg('loads'); }
     else { response = noOpt(ecoModeMsg()); }
   } else if (step === 'eco_diesel_hours' || step === 'eco_loads_hours') {
-    response = ecoHoursMsg(step === 'eco_diesel_hours' ? 'diesel' : 'loads');
+    // طلب عرض سعر من دراسة الجدوى: تُعتمد الأحمال الساعية وتُصمم منظومة هجينة ثم يصدر العرض الرسمي
+    var _eq = String(text).indexOf('eco_quote') === 0 ? parseLoads(String(text).slice(9)) : null;
+    if (_eq) {
+      menu_choice = '7';
+      pvSave({ l: _eq, c: city || '', m: 'hyb', load_source: 'ECO_FEASIBILITY' });
+      var _es = 0, _ep = 0;
+      for (var _ei = 0; _ei < 24; _ei++) { _es += _eq[_ei]; if (_eq[_ei] > _ep) { _ep = _eq[_ei]; } }
+      monthly_consumption = String(Math.round(_es * 30 * 100) / 100);
+      peak_load = String(Math.round(_ep * 100) / 100);
+      var _eZ = sizeSystem(_eq, 'hyb');
+      system_type = ''; phase_type = _eZ.inv.ph === 3 ? 'three' : 'single';
+      inv_pick = SINV_IMG[_eZ.inv.key] || null; inv_pick_line = 'انفرتر ' + _eZ.inv.model;
+      quote_number = 'ACTES-Q' + String(Date.now()).slice(-6);
+      pv_flow = true;
+      if (customer_name && pvIssueQuote()) { step = 'buy_ask'; followup_kind = 'buy'; }
+      else { step = 'pv_quote_name'; response = W(' إصدار عرض السعر الرسمي\n' + SEP + '\nيرجى كتابة اسم العميل أو اسم الجهة ليُدرج في عرض السعر._'); }
+    } else {
+      response = ecoHoursMsg(step === 'eco_diesel_hours' ? 'diesel' : 'loads');
+    }
   } else if (step === 'quote_menu') {
     if (text === '1') { step = 'menu_sys3'; response = W(' اختر نوع المنظومة\n' + SEP + '\n1 - النظام السكني\n2 - النظام التجاري\n4 - النظام الصناعي\n3 - النظام الزراعي'); }
     else if (text === '2' || text === 'item_request' || text === '3') { step = 'item_menu'; response = itemMenuMsg(); }
@@ -3739,6 +3757,11 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     else if (text === 'study_no' || isNoT(text)) { step = 'pv_sld_ask'; response = pvSldAskMsg(); }
     else { response = noOpt(studyAskMsg()); }
 
+  } else if (step === 'pv_sld_ask' && (text === 'buy_invoice' || text === 'pv_q_yes')) {
+    // من شاشة دراسة PVsyst: طلب عرض السعر الرسمي مباشرة
+    if (customer_name && pvIssueQuote()) { step = 'buy_ask'; followup_kind = 'buy'; }
+    else { step = 'pv_quote_name'; response = W(' إصدار عرض السعر الرسمي\n' + SEP + '\nيرجى كتابة اسم العميل أو اسم الجهة ليُدرج في عرض السعر._'); }
+
   } else if (step === 'pv_sld_ask') {
     var _Z2 = pvDesign();
     if ((text === 'sld_yes' || text === '1' || text === 'نعم') && _Z2) {
@@ -3757,6 +3780,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     }
 
   } else if (step === 'pv_quote_ask') {
+    if (text === 'buy_invoice') { text = 'pv_q_yes'; }
     var _iq = indGet();
     if ((text === 'pv_q_yes' || text === '1' || text === 'نعم') && _iq && _iq.name) {
       customer_name = _iq.name; quote_number = _iq.qn || quote_number;
