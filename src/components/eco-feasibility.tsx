@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { EcoReport } from "./eco-report";
 
 // دراسة الجدوى الاقتصادية: 24 خانة (ديزل لتر/ساعة أو أحمال kW) ثم 3 سيناريوهات للمنظومة
 type Mode = "diesel" | "loads";
@@ -104,6 +105,10 @@ export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?:
     );
   }
 
+  if (filled === 24) {
+    return <EcoReport kw={kw} price={dp} onEdit={() => setDone(false)} onSales={onSales} onBuy={onBuy ? () => onBuy(kw.map((v, h) => `${h}: ${Math.round(v * 100) / 100}`).join("\n")) : undefined} />;
+  }
+  void rec; void dailyL; void invPkg;
   return (
     <div className="space-y-4">
       <div className="rounded-lg border border-border bg-muted/35 p-4 text-sm">
