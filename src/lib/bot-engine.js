@@ -5195,7 +5195,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     if (ui.kind === 'buttons') {
       var btns = [], b;
       for (b = 0; b < ui.buttons.length && b < 3; b++) {
-        btns.push({ type: 'reply', reply: { id: ui.buttons[b].id, title: truncate(ui.buttons[b].title, 20) } });
+        btns.push({ type: 'reply', reply: { id: ui.buttons[b].id, title: ui.buttons[b].title } });
       }
       if (!hasBackStep(ui.buttons) && st !== 'welcome_services' && st !== 'start' && st !== 'done') {
         bodyText = __addBackHint(bodyText);
@@ -5254,7 +5254,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     if (st !== 'welcome_services' && st !== 'start' && st !== 'done') { body = __addBackHint(body); }
     var rbtns = [], m2;
     for (m2 = 0; m2 < flatRows.length && m2 < 3; m2++) {
-      rbtns.push({ type: 'reply', reply: { id: flatRows[m2].id, title: truncate(flatRows[m2].title, 20) } });
+      rbtns.push({ type: 'reply', reply: { id: flatRows[m2].id, title: flatRows[m2].title } });
     }
     if (body.length > 1020) {
       return Object.assign(base, { type: 'text', text: { preview_url: false, body: body.substring(0, 4000) } });
@@ -5451,7 +5451,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
   function btnMsg(bodyText, btnList) {
     var arr = [];
     for (var k = 0; k < btnList.length && k < 3; k++) {
-      arr.push({ type: 'reply', reply: { id: btnList[k].id, title: truncate(btnList[k].title, 20) } });
+      arr.push({ type: 'reply', reply: { id: btnList[k].id, title: btnList[k].title } });
     }
     return {
       messaging_product: 'whatsapp', recipient_type: 'individual', to: phone,

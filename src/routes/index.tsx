@@ -62,6 +62,13 @@ import {
   Linkedin,
   Globe,
   BadgeDollarSign,
+  Gauge,
+  Activity,
+  Cpu,
+  Fuel,
+  PlugZap,
+  Users,
+  Factory,
 } from "lucide-react";
 import residentialImage from "@/assets/actes-residential.webp";
 import commercialImage from "@/assets/actes-commercial.webp";
@@ -1960,12 +1967,26 @@ function OptionGrid({ options, selected, projectCards = false, energyCards = fal
     );
   }
 
+  const pickIcon = (t: string, index: number) => {
+    if (/ستار|مباشر/.test(t)) return Gauge;
+    if (/ناعم|soft/i.test(t)) return Activity;
+    if (/vfd|سرعة/i.test(t)) return Cpu;
+    if (/مولد|ديزل/.test(t)) return Fuel;
+    if (/شبكة/.test(t)) return PlugZap;
+    if (/وردي/.test(t)) return Users;
+    if (/مصنع|صناع/.test(t)) return Factory;
+    if (/لوح|شمس/.test(t)) return Sun;
+    if (/بطار|تخزين/.test(t)) return BatteryCharging;
+    if (/سكن|منزل/.test(t)) return House;
+    if (/تجار/.test(t)) return Building2;
+    return index % 2 === 0 ? Zap : BatteryCharging;
+  };
   return (
-    <div className="stagger-in grid gap-2 grid-cols-2 sm:grid-cols-3 xl:grid-cols-6">
+    <div className="stagger-in grid gap-2 grid-cols-1 min-[360px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-4">
 
       {options.map((option, index) => {
         const active = selected === option.id;
-        const Icon = index % 4 === 0 ? House : index % 4 === 1 ? Building2 : index % 4 === 2 ? Zap : BatteryCharging;
+        const Icon = pickIcon(option.title, index);
         const priceMatch = option.description?.match(/السعر:\s*([\d.,]+\s*\$?)/);
         const details = option.description ? option.description.replace(/—?\s*السعر:.*$/, "").trim() : "";
         const spec = itemSpec(`${option.title} ${option.description || ""}`);
@@ -1974,19 +1995,19 @@ function OptionGrid({ options, selected, projectCards = false, energyCards = fal
             key={`${option.id}-${index}`}
             type="button"
             onClick={() => onSelect(option.id)}
-            className={`group flex h-full flex-col gap-1.5 rounded-lg border p-2.5 text-right transition hover:border-navy/40 hover:shadow-md ${active ? "border-brand bg-brand/5 shadow-md" : "border-border bg-card shadow-sm"}`}
+            className={`group flex h-full flex-col gap-1 rounded-xl border px-2.5 py-2 text-right transition hover:-translate-y-0.5 hover:border-brand/50 hover:shadow-md ${active ? "border-brand bg-brand/5 shadow-md" : "border-border bg-card shadow-sm"}`}
           >
-            <span className="flex items-start justify-between gap-2">
-              <span className={`grid size-7 shrink-0 place-items-center rounded-md transition ${active ? "bg-brand text-brand-foreground" : "bg-navy-soft text-navy"}`}>
-                <Icon className="size-3.5" />
+            <span className="flex items-center gap-2">
+              <span className={`grid size-8 shrink-0 place-items-center rounded-lg transition ${active ? "bg-brand text-brand-foreground" : "bg-brand/10 text-brand group-hover:bg-brand group-hover:text-brand-foreground"}`}>
+                <Icon className="size-4" strokeWidth={2.2} />
               </span>
+              <span className="min-w-0 flex-1 whitespace-normal break-words text-[12px] font-black leading-[1.35rem]">{option.title}</span>
               {active ? (
-                <span className="grid size-5 place-items-center rounded-full bg-brand text-brand-foreground"><Check className="size-3" /></span>
+                <span className="grid size-5 shrink-0 place-items-center rounded-full bg-brand text-brand-foreground"><Check className="size-3" /></span>
               ) : (
-                <ArrowLeft className="size-3.5 text-muted-foreground transition group-hover:text-brand" />
+                <ArrowLeft className="size-3.5 shrink-0 text-muted-foreground transition group-hover:text-brand" />
               )}
             </span>
-            <span className="block text-[13px] font-black leading-5">{option.title}</span>
             {spec && (
               <span className="inline-flex w-fit items-center rounded-md bg-skyline/10 px-2 py-0.5 text-[11px] font-black text-skyline" dir="ltr">{spec}</span>
             )}
