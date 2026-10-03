@@ -278,7 +278,8 @@ function ActesApp() {
     }
     // شاشة الترحيب هي أول شاشة دائماً؛ تسجيل الدخول يأتي لاحقاً عند طلب عرض سعر.
     void registered;
-    setGate("boot");
+    // زر «الرئيسية» من المواقع الأخرى يعود للشاشة الرئيسية لا لشاشة البدء بعد أول «ابدأ».
+    setGate(window.sessionStorage.getItem("actes.started") === "1" ? "app" : "boot");
 
     // تهيئة النطق المسبق فقط؛ الترحيب الصوتي يبدأ عند الضغط على «ابدأ» (بإيماءة المستخدم).
     prepareWelcome();
@@ -778,7 +779,7 @@ function ActesApp() {
       ) : gate === "boot" ? (
         <StartScreen
           clientName={clientName}
-          onStart={() => { unlockVoice(); void speakWelcome(); setGate("app"); }}
+          onStart={() => { unlockVoice(); void speakWelcome(); try { window.sessionStorage.setItem("actes.started", "1"); } catch { /* ignore */ } setGate("app"); }}
         />
       ) : gate === "client-login" ? (
         <ClientLogin
