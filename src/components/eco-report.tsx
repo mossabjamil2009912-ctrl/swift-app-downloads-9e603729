@@ -187,7 +187,7 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system, p
     } finally { setBusy(false); onDownloaded?.(); }
   };
   const started = useRef(false);
-  useEffect(() => { if (autoDownload && !started.current) { started.current = true; const t = setTimeout(() => { void download(); }, 400); return () => clearTimeout(t); } }, [autoDownload]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (autoDownload && !started.current) { started.current = true; const t = setTimeout(() => { void download(); }, 400); return () => clearTimeout(t); } return undefined; }, [autoDownload]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="space-y-5">
