@@ -1431,7 +1431,7 @@ const PARTNER_LINKS = [
   { name: "Li-Power", url: "/lipower", from: 100, to: 245 },
   { name: "PYLONTECH", url: "/pylontech", from: 270, to: 468 },
   { name: "SUNTECH", url: "/suntech", from: 492, to: 686 },
-  { name: "HiTHIUM", url: "https://www.hithium.com", from: 716, to: 886 },
+  { name: "HiTHIUM", url: "/hithium", from: 716, to: 886 },
   { name: "sunways", url: "https://www.sunways-tech.com", from: 918, to: 1110 },
 ];
 

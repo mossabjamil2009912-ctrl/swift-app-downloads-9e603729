@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DownloadsRouteImport } from './routes/downloads'
+import { Route as HithiumRouteImport } from './routes/hithium'
 import { Route as LipowerRouteImport } from './routes/lipower'
 import { Route as PylontechRouteImport } from './routes/pylontech'
 import { Route as SuntechRouteImport } from './routes/suntech'
@@ -26,6 +27,11 @@ const IndexRoute = IndexRouteImport.update({
 const DownloadsRoute = DownloadsRouteImport.update({
   id: '/downloads',
   path: '/downloads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HithiumRoute = HithiumRouteImport.update({
+  id: '/hithium',
+  path: '/hithium',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LipowerRoute = LipowerRouteImport.update({
@@ -62,6 +68,7 @@ const ApiPublicWaInvoiceRoute = ApiPublicWaInvoiceRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/downloads': typeof DownloadsRoute
+  '/hithium': typeof HithiumRoute
   '/lipower': typeof LipowerRoute
   '/pylontech': typeof PylontechRoute
   '/suntech': typeof SuntechRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/downloads': typeof DownloadsRoute
+  '/hithium': typeof HithiumRoute
   '/lipower': typeof LipowerRoute
   '/pylontech': typeof PylontechRoute
   '/suntech': typeof SuntechRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/downloads': typeof DownloadsRoute
+  '/hithium': typeof HithiumRoute
   '/lipower': typeof LipowerRoute
   '/pylontech': typeof PylontechRoute
   '/suntech': typeof SuntechRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/downloads'
+    | '/hithium'
     | '/lipower'
     | '/pylontech'
     | '/suntech'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/downloads'
+    | '/hithium'
     | '/lipower'
     | '/pylontech'
     | '/suntech'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/downloads'
+    | '/hithium'
     | '/lipower'
     | '/pylontech'
     | '/suntech'
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DownloadsRoute: typeof DownloadsRoute
+  HithiumRoute: typeof HithiumRoute
   LipowerRoute: typeof LipowerRoute
   PylontechRoute: typeof PylontechRoute
   SuntechRoute: typeof SuntechRoute
@@ -148,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/downloads'
       fullPath: '/downloads'
       preLoaderRoute: typeof DownloadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hithium': {
+      id: '/hithium'
+      path: '/hithium'
+      fullPath: '/hithium'
+      preLoaderRoute: typeof HithiumRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lipower': {
@@ -198,6 +218,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DownloadsRoute: DownloadsRoute,
+  HithiumRoute: HithiumRoute,
   LipowerRoute: LipowerRoute,
   PylontechRoute: PylontechRoute,
   SuntechRoute: SuntechRoute,
