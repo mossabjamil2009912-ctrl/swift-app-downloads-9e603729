@@ -1,3 +1,4 @@
+import { AgencyBadge, AgencyShowcase } from "@/components/agency-showcase";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowRight, ChevronDown, Download, FileText, Mail, Menu, X } from "lucide-react";
@@ -84,6 +85,7 @@ function SuntechPage() {
 
   return (
     <main dir="rtl" className="min-h-screen bg-background text-foreground">
+      <AgencyBadge brand="suntech" />
       <header className="fixed inset-x-0 top-0 z-30 border-b border-border bg-background/95 backdrop-blur" onMouseLeave={() => setOpen(null)}>
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5">
           <div className="flex items-center gap-3">
@@ -286,6 +288,7 @@ function SuntechPage() {
       </section>
 
       {detailP && <BrandProductDetail product={detailP} accent="#e60012" gallery={[`${M}/solar-module-banner.png`, `${M}/banner-20260408.webp`, `${M}/solar-module-banner-bg.jpg`]} onClose={() => setDetail(null)} />}
+      <AgencyShowcase brand="suntech" />
       <footer className="bg-foreground py-8 text-sm text-background/70">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5">
           <p dir="ltr">©Copyright. Wuxi Suntech Power Co., Ltd. All Rights Reserved.</p>
