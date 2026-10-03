@@ -173,6 +173,10 @@ export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?:
 export function EcoSystemStudy({ onSales }: { onSales?: () => void }) {
   const [f, setF] = useState({ panel: "", panelW: "", panelN: "", inv: "", invKw: "", invN: "", bat: "", batKwh: "", batN: "", cost: "", price: "1.1" });
   const [done, setDone] = useState(false);
+  const [lm, setLm] = useState<"none" | "loads" | "diesel">("none");
+  const [hrs, setHrs] = useState<string[]>(() => Array(24).fill(""));
+  const [total, setTotal] = useState("");
+  const [one, setOne] = useState("");
   const n = (v: string) => Math.max(0, Number(v) || 0);
   const kwp = (n(f.panelW) * n(f.panelN)) / 1000;
   const invKw = n(f.invKw) * n(f.invN);
@@ -183,7 +187,22 @@ export function EcoSystemStudy({ onSales }: { onSales?: () => void }) {
   // الإنتاج اليومي محدود بقدرة الانفرتر
   const dailyKwh = Math.min(kwp, invKw * 1.3) * PSH * PR;
   const yearKwh = dailyKwh * 365;
-  const liters = Math.round(yearKwh / KWH_PER_L);
+  // توزيع الإجمالي اليومي بنمط واقعي: ساعات النهار ضعف الليل
+  const spread = (t: number) => { const w = Array.from({ length: 24 }, (_, h) => (DAY(h) ? 2 : 1)); const s = w.reduce((a, b) => a + b, 0); return w.map((x) => String(Math.round((t * x / s) * 100) / 100)); };
+  const loadKw = hrs.map((v) => n(v) * (lm === "diesel" ? KWH_PER_L : 1));
+  const loadDay = loadKw.reduce((a, b) => a + b, 0);
+  const useLoads = lm !== "none" && loadDay > 0;
+  let covered = dailyKwh;
+  if (useLoads) {
+    const sun = Array.from({ length: 24 }, (_, h) => (h >= 6 && h < 18 ? Math.sin(((h - 6 + 0.5) / 12) * Math.PI) : 0));
+    const ss = sun.reduce((a, b) => a + b, 0);
+    let direct = 0, excess = 0;
+    sun.forEach((s, h) => { const p = (dailyKwh * s) / ss; direct += Math.min(p, loadKw[h]); excess += Math.max(0, p - loadKw[h]); });
+    const night = loadDay - direct;
+    covered = direct + Math.min(excess * 0.9, batKwh * DOD, night);
+  }
+  const coverage = useLoads ? Math.round((covered / loadDay) * 100) : null;
+  const liters = Math.round((covered * 365) / KWH_PER_L);
   const saving = Math.round(liters * dp * 1.1);
   let cum = -capex; let payback: number | null = null;
   const rows: { y: number; cum: number }[] = [];
@@ -218,6 +237,34 @@ export function EcoSystemStudy({ onSales }: { onSales?: () => void }) {
           {field("cost", "تكلفة المنظومة ($)", "10000", true)}
           {field("price", "سعر لتر الديزل ($)", "1.1", true)}
         </div>
+        <div className="mt-5 rounded-md border border-border bg-background p-4">
+          <p className="text-xs font-black">بيانات الأحمال <span className="font-normal text-muted-foreground">(اختياري — لحساب التغطية والتوفير الفعلي)</span></p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {([["none", "بدون"], ["loads", "بيانات الأحمال (kW)"], ["diesel", "بيانات الديزل (لتر/ساعة)"]] as const).map(([k, l]) => (
+              <button key={k} type="button" onClick={() => setLm(k)} className={`rounded-md border px-3 py-1.5 text-xs font-bold ${lm === k ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>{l}</button>
+            ))}
+          </div>
+          {lm !== "none" && (
+            <div className="mt-3 space-y-3">
+              <div className="flex flex-wrap items-end gap-2">
+                <label className="grid gap-1"><span className="text-xs font-bold">الإجمالي ليوم واحد ({lm === "diesel" ? "لتر/يوم" : "kWh/يوم"})</span>
+                  <input inputMode="decimal" value={total} onChange={(e) => setTotal(e.target.value)} placeholder={lm === "diesel" ? "120" : "400"} className="w-36 rounded-md border border-border bg-background px-3 py-2 text-sm" /></label>
+                <button type="button" disabled={!n(total)} onClick={() => setHrs(spread(n(total)))} className="rounded-md bg-skyline px-3 py-2 text-xs font-bold text-skyline-foreground disabled:opacity-50">توزيع على الـ 24 ساعة</button>
+              </div>
+              <div className="flex flex-wrap items-end gap-2">
+                <label className="grid gap-1"><span className="text-xs font-bold">قيمة واحدة لكل ساعة ({lm === "diesel" ? "لتر/ساعة" : "kW"})</span>
+                  <input inputMode="decimal" value={one} onChange={(e) => setOne(e.target.value)} className="w-36 rounded-md border border-border bg-background px-3 py-2 text-sm" /></label>
+                <button type="button" disabled={!n(one)} onClick={() => setHrs(Array(24).fill(one))} className="rounded-md border border-border px-3 py-2 text-xs font-bold disabled:opacity-50">اعتماد نفس القيمة لكل الساعات</button>
+              </div>
+              <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-6">
+                {hrs.map((v, h) => (
+                  <label key={h} className="grid gap-0.5 text-[10px] text-muted-foreground">{String(h).padStart(2, "0")}:00
+                    <input inputMode="decimal" value={v} onChange={(e) => setHrs(hrs.map((x, i) => (i === h ? e.target.value : x)))} className="rounded border border-border bg-background px-2 py-1 text-xs text-foreground" /></label>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
         <button type="submit" disabled={!ok} className="mt-4 w-full rounded-md bg-skyline px-6 py-3 text-sm font-bold text-skyline-foreground disabled:opacity-50 sm:w-auto">احسب الجدوى الاقتصادية</button>
       </form>
     );
@@ -240,6 +287,7 @@ export function EcoSystemStudy({ onSales }: { onSales?: () => void }) {
           {[
             ["الإنتاج اليومي المتوقع", `${nf(dailyKwh, 1)} kWh`],
             ["الإنتاج السنوي", `${nf(yearKwh)} kWh`],
+            ...(useLoads ? [["الحمل اليومي", `${nf(loadDay, 1)} kWh`], ["نسبة تغطية الحمل", `${coverage}%`]] : []),
             ["الديزل الموفّر سنوياً", `${nf(liters)} لتر`],
             ["التوفير السنوي", `${nf(saving)} $`],
             ["فترة الاسترداد", payback ? `${Math.round(payback * 10) / 10} سنة` : "—"],
