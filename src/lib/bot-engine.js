@@ -2935,10 +2935,10 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
       s += '\nسادساً: التوفير التقديري في الديزل\n' + z.diesel.savedDay + ' لتر/يوم ≈ *' + z.diesel.savedMonth + ' لتر/شهر (تغطية ' + z.diesel.pct + '%)\n';
     }
     if (parseFloat(ind.bill) > 0) { s += '\nفاتورة الكهرباء الحالية: ' + Math.round(parseFloat(ind.bill)).toLocaleString('en-US') + ' ريال/شهر\n'; }
-    s += SEP + '\nالمنظومة أعلاه تصميم أولي، ويُعتمد التصميم النهائي بعد مراجعة جدول الأحمال من الفريق الهندسي\n\nيمكنك إصدار عرض السعر الرسمي، أو طلب دراسة محاكاة الإنتاجية السنوية، أو المخطط التنفيذي للمنظومة';
+    s += SEP + '\nالمنظومة أعلاه تصميم أولي، ويُعتمد التصميم النهائي بعد مراجعة جدول الأحمال من الفريق الهندسي\n\nيمكنك إصدار عرض سعر رسمي، أو حجز موعد للمعاينة الميدانية _';
     return W(s);
   }
-  function indResultAsk() { return W(' الخطوة التالية\n' + SEP + '\nيمكنك إصدار عرض السعر الرسمي، أو طلب دراسة محاكاة الإنتاجية السنوية، أو المخطط التنفيذي للمنظومة'); }
+  function indResultAsk() { return W(' الخطوة التالية\n' + SEP + '\nيمكنك إصدار عرض سعر رسمي، أو حجز موعد للمعاينة الميدانية _'); }
   function notifInd(z, ind, tag) {
     var hs = indHoursSummary(ind);
     var s = AC + ' — ' + (tag || 'طلب منظومة صناعية') + (quote_number ? ' ' + quote_number : '') + '\n' + SEP + '\n';
@@ -3288,7 +3288,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     com_value: 'com_method',
     com_inv_ask: 'com_value',
     com_phase_ask: 'com_inv_ask',
-    com_quote_name: 'com_visit_ask',
+    com_quote_name: 'com_visit_ask', ind_quote_name: 'ind_result',
     com_visit_date: 'com_visit_ask',
     com_visit_facility: 'com_visit_date',
     com_visit_location: 'com_visit_facility',
@@ -4001,19 +4001,23 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     // سؤال الهدف أُلغي: الهدف يُستنتج من الورديات والأحمال الليلية
     response = indFinish();
 
+  } else if (step === 'ind_quote_name') {
+    if (text === '__media__' || !String(text || '').trim()) { response = noOpt(m('ask_name')); }
+    else {
+      customer_name = String(text).trim(); indSet({ name: customer_name }); pv_flow = true;
+      if (pvIssueQuote()) { step = 'qnext_ask'; followup_kind = 'qnext'; }
+      else { step = 'done'; response = m('contact_ok'); }
+    }
   } else if (step === 'ind_result') {
     var _rz = pvDesign(); var _ri = indGet();
     if (!_rz || !_ri) { step = 'ind_total_kw'; response = W(' تعذر استرجاع بيانات المشروع، يرجى البدء من جديد._') + '\n' + indTotalAsk(); }
     else {
       quote_number = _ri.qn ? _ri.qn : quote_number;
       if (text === 'ind_quote' || text === '1' || /سعر|عرض/.test(String(text))) {
-        indSet({ pend: 'quote', name: customer_name || _ri.name || '' }); city = ''; step = 'ind_loc_gov'; response = indLocAsk();
+        step = 'ind_quote_name'; response = m('ask_name');
       }
-      else if (text === 'ind_study' || text === '2' || /دراس|pvsyst/i.test(String(text))) {
-        indSet({ pend: 'study', name: customer_name || _ri.name || '' }); city = ''; step = 'ind_loc_gov'; response = indLocAsk();
-      }
-      else if (text === 'ind_sld' || text === '3' || /مخطط|sld/i.test(String(text))) {
-        indSet({ pend: 'sld', name: customer_name || _ri.name || '' }); city = ''; step = 'ind_loc_gov'; response = indLocAsk();
+      else if (text === 'ind_visit' || text === '2' || /زيار|معاين/.test(String(text))) {
+        step = 'com_visit_date'; response = comVisitDateAsk();
       }
       else if (text === 'buy_invoice') { customer_name = customer_name || _ri.name || ''; response = goBuy(); }
       else { response = noOpt(indResultAsk()); }
@@ -4792,9 +4796,8 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     }
     if (st === 'ind_result') {
       return { kind: 'buttons', buttons: [
-        { id: 'ind_quote', title: 'عرض السعر' },
-        { id: 'ind_study', title: 'دراسة PVsyst' },
-        { id: 'ind_sld', title: 'مخطط SLD' }
+        { id: 'ind_quote', title: 'طلب عرض سعر رسمي' },
+        { id: 'ind_visit', title: 'موعد زيارة ميدانية' }
       ] };
     }
     if (st === 'ind_gen_kva' || st === 'ind_diesel' || st === 'ind_bill' || st === 'ind_night_kw') {

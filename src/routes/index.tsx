@@ -158,6 +158,7 @@ const STEP_LABELS: Record<string, string> = {
   com_phase_ask: "نوع التوصيل الكهربائي",
   com_visit_ask: "عرض المنظومة التجارية",
   com_quote_name: "بيانات العميل أو المنشأة",
+  ind_quote_name: "بيانات العميل أو المنشأة",
   com_visit_date: "موعد الزيارة الميدانية",
   com_visit_facility: "اسم المنشأة والنشاط",
   com_visit_location_gov: "موقع المنشأة",
@@ -204,7 +205,7 @@ const STEP_LABELS: Record<string, string> = {
 
 const BACK_OPTION_TITLES = new Set(["العودة خطوة", "العودة للبداية", "العودة إلى البداية"]);
 
-const NAME_STEPS = new Set(["quote_name", "com_quote_name", "pv_quote_name"]);
+const NAME_STEPS = new Set(["quote_name", "com_quote_name", "ind_quote_name", "pv_quote_name"]);
 
 
 const NAV_ITEMS = [
@@ -2102,6 +2103,7 @@ const ENTRY_PROMPTS: Record<string, EntryPrompt> = {
   agr_visit_date: { label: "موعد المعاينة", hint: "اكتب اليوم والوقت المناسبين لمعاينة البئر والمزرعة", placeholder: "مثال: السبت القادم صباحاً", cta: "متابعة" },
   res_value: { label: "قيمة الاستهلاك", hint: "ادخل قيمة استهلاكك الشهري كما هي في فاتورتك", placeholder: "اكتب الرقم هنا", cta: "متابعة", numeric: true },
   com_value: { label: "قيمة الاستهلاك", hint: "ادخل قيمة استهلاك المنشأة حسب الطريقة التي اخترتها", placeholder: "اكتب الرقم هنا", cta: "متابعة", numeric: true },
+  ind_quote_name: { label: "اسم العميل أو المنشأة", hint: "اكتب الاسم الذي سيعتمد في عرض السعر الرسمي", placeholder: "الاسم التجاري أو اسم المسؤول", cta: "إصدار عرض السعر" },
   com_quote_name: { label: "اسم العميل أو المنشأة", hint: "اكتب الاسم الذي سيعتمد في عرض السعر الرسمي", placeholder: "الاسم التجاري أو اسم المسؤول", cta: "متابعة" },
   com_visit_date: { label: "موعد الزيارة الميدانية", hint: "اكتب اليوم والوقت المناسبين للمعاينة", placeholder: "مثال: السبت القادم صباحاً", cta: "متابعة" },
   com_visit_facility: { label: "اسم المنشأة والنشاط التجاري", hint: "اكتب اسم المنشأة ونوع نشاطها", placeholder: "مثال: مركز تجاري، فندق، محطة وقود، ورشة", cta: "متابعة" },
