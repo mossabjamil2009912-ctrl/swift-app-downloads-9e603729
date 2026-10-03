@@ -1896,7 +1896,7 @@ function OptionGrid({ options, selected, projectCards = false, energyCards = fal
               key={`${option.id}-${index}`}
               type="button"
               onClick={() => onSelect(option.id)}
-              className={`group flex h-full flex-col overflow-hidden rounded-xl border text-right transition-[border-color,box-shadow] duration-150 hover:border-brand/60 hover:shadow-md ${active ? "border-brand bg-brand/5 shadow-md" : "border-border bg-card shadow-sm"}`}
+              className={`group flex h-full flex-col overflow-hidden rounded-lg border text-right transition-[border-color,box-shadow] duration-150 hover:border-navy/40 hover:shadow-md ${active ? "border-brand bg-brand/5 shadow-md" : "border-border bg-card shadow-sm"}`}
             >
               {image ? (
                 <span className="block h-14 w-full overflow-hidden border-b border-border bg-muted sm:h-16">
@@ -1967,11 +1967,11 @@ function OptionGrid({ options, selected, projectCards = false, energyCards = fal
             key={`${option.id}-${index}`}
             type="button"
             onClick={() => onSelect(option.id)}
-            className={`group flex h-full flex-col gap-2 rounded-xl border p-2.5 text-right transition hover:-translate-y-0.5 hover:border-brand/60 hover:shadow-lg ${active ? "border-brand bg-brand/5 shadow-md" : "border-border bg-card shadow-sm"}`}
+            className={`group flex h-full flex-col gap-1.5 rounded-lg border p-2.5 text-right transition hover:border-navy/40 hover:shadow-md ${active ? "border-brand bg-brand/5 shadow-md" : "border-border bg-card shadow-sm"}`}
           >
             <span className="flex items-start justify-between gap-2">
-              <span className={`grid size-8 shrink-0 place-items-center rounded-lg transition ${active ? "bg-brand text-brand-foreground" : "bg-secondary text-skyline group-hover:bg-brand/10 group-hover:text-brand"}`}>
-                <Icon className="size-4" />
+              <span className={`grid size-7 shrink-0 place-items-center rounded-md transition ${active ? "bg-brand text-brand-foreground" : "bg-navy-soft text-navy"}`}>
+                <Icon className="size-3.5" />
               </span>
               {active ? (
                 <span className="grid size-5 place-items-center rounded-full bg-brand text-brand-foreground"><Check className="size-3" /></span>
