@@ -382,3 +382,10 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system, p
     </div>
   );
 }
+
+/** ملخص سريع لسيناريو بنسبة تغطية مستهدفة — يُستخدم في بطاقات السيناريوهات. */
+export function ecoSummary(kw: number[], price: number, target: number) {
+  const d = design(kw, undefined, target);
+  const e = econ(d.total, d.genE, d.capex, price);
+  return { kwp: d.kwp, panelLabel: d.panelLabel, batKwh: d.batKwh, batLabel: d.batLabel, inv: `${d.invN} × ${d.invBrand} ${d.unit} kW`, invKw: d.unit * d.invN, capex: d.capex, saving: e.saving, months: e.months, cut: e.cut, savedL: e.savedL * 365, offH: 24 - d.genHours, peak: d.peak, total: d.total };
+}
