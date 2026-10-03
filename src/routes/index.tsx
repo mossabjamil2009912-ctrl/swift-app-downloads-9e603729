@@ -1794,12 +1794,12 @@ function QuoteActions({ onPick, hideEngineering = false, onEco }: { onPick: (val
           key={action.id}
           type="button"
           onClick={() => { if (action.id === "aq_eco" && onEco) { onEco(); return; } onPick(action.id); }}
-          className={`flex items-center gap-3 rounded-xl px-4 py-3 text-right shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-lg ${action.className}`}
+          className={`group flex items-center gap-3 rounded-lg p-3 text-right shadow-sm transition hover:shadow-md ${action.className}`}
         >
-          <span className={`grid size-9 shrink-0 place-items-center rounded-lg [&_svg]:size-4 ${action.chip}`}>{action.icon}</span>
+          <span className={`grid size-9 shrink-0 place-items-center rounded-lg [&_svg]:size-4.5 ${action.chip}`}>{action.icon}</span>
           <span className="min-w-0 flex-1">
-            <span className="block text-[13px] font-black leading-5">{action.title}</span>
-            <span className="block text-[10px] font-semibold leading-4 opacity-85">{action.note}</span>
+            <span className="block text-sm font-black leading-5">{action.title}</span>
+            <span className="block text-[11px] font-semibold leading-4 opacity-85">{action.note}</span>
           </span>
           <ArrowLeft className="size-4 shrink-0 opacity-80" />
         </button>
@@ -1981,12 +1981,19 @@ function OptionGrid({ options, selected, projectCards = false, energyCards = fal
     if (/تجار/.test(t)) return Building2;
     return index % 2 === 0 ? Zap : BatteryCharging;
   };
+  const pickTone = (t: string) => {
+    if (/لوح|شمس|نهار/.test(t)) return "bg-energy/15 text-energy";
+    if (/بطار|تخزين|ليل/.test(t)) return "bg-skyline/15 text-skyline";
+    if (/مولد|ديزل/.test(t)) return "bg-muted text-foreground";
+    return "bg-brand/12 text-brand";
+  };
   return (
-    <div className="stagger-in grid gap-2 grid-cols-1 min-[360px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-4">
+    <div className="stagger-in grid gap-2.5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
 
       {options.map((option, index) => {
         const active = selected === option.id;
         const Icon = pickIcon(option.title, index);
+        const tone = pickTone(option.title);
         const priceMatch = option.description?.match(/السعر:\s*([\d.,]+\s*\$?)/);
         const details = option.description ? option.description.replace(/—?\s*السعر:.*$/, "").trim() : "";
         const spec = itemSpec(`${option.title} ${option.description || ""}`);
@@ -1995,29 +2002,30 @@ function OptionGrid({ options, selected, projectCards = false, energyCards = fal
             key={`${option.id}-${index}`}
             type="button"
             onClick={() => onSelect(option.id)}
-            className={`group flex h-full flex-col gap-1 rounded-xl border px-2.5 py-2 text-right transition hover:-translate-y-0.5 hover:border-brand/50 hover:shadow-md ${active ? "border-brand bg-brand/5 shadow-md" : "border-border bg-card shadow-sm"}`}
+            className={`group flex h-full items-start gap-3 rounded-lg border p-3 text-right transition hover:shadow-md hover:border-brand/60 ${active ? "border-brand bg-brand/5 shadow-md" : "border-border bg-card shadow-sm"}`}
           >
-            <span className="flex items-center gap-2">
-              <span className={`grid size-8 shrink-0 place-items-center rounded-lg transition ${active ? "bg-brand text-brand-foreground" : "bg-brand/10 text-brand group-hover:bg-brand group-hover:text-brand-foreground"}`}>
-                <Icon className="size-4" strokeWidth={2.2} />
-              </span>
-              <span className="min-w-0 flex-1 whitespace-normal break-words text-[12px] font-black leading-[1.35rem]">{option.title}</span>
-              {active ? (
-                <span className="grid size-5 shrink-0 place-items-center rounded-full bg-brand text-brand-foreground"><Check className="size-3" /></span>
-              ) : (
-                <ArrowLeft className="size-3.5 shrink-0 text-muted-foreground transition group-hover:text-brand" />
-              )}
+            <span className={`grid size-9 shrink-0 place-items-center rounded-lg transition ${active ? "bg-brand text-brand-foreground" : tone}`}>
+              <Icon className="size-4.5" strokeWidth={2.2} />
             </span>
+            <span className="flex min-w-0 flex-1 flex-col gap-1">
+              <span className="flex items-start gap-2">
+                <strong className="min-w-0 flex-1 whitespace-normal break-words text-sm font-black leading-5">{option.title}</strong>
+                {active && <span className="grid size-5 shrink-0 place-items-center rounded-full bg-brand text-brand-foreground"><Check className="size-3" /></span>}
+              </span>
             {spec && (
               <span className="inline-flex w-fit items-center rounded-md bg-skyline/10 px-2 py-0.5 text-[11px] font-black text-skyline" dir="ltr">{spec}</span>
             )}
-            {details && <span className="block text-[10px] leading-4 text-muted-foreground">{details}</span>}
+            {details && <small className="text-[11px] font-semibold leading-4 text-muted-foreground">{details}</small>}
             {priceMatch && (
-              <span className="mt-auto inline-flex w-fit items-center gap-1 rounded-full bg-energy/10 px-2 py-0.5 text-[10px] font-black text-energy">
+              <span className="inline-flex w-fit items-center gap-1 rounded-full bg-energy/10 px-2 py-0.5 text-[10px] font-black text-energy">
                 <CircleDollarSign className="size-3" />
                 {(priceMatch[1] ?? "").trim()}
               </span>
             )}
+              <span className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-black text-brand">
+                {active ? "تم الاختيار" : "اختر"} <ArrowLeft className="size-3.5 transition group-hover:-translate-x-0.5" />
+              </span>
+            </span>
           </button>
         );
       })}
