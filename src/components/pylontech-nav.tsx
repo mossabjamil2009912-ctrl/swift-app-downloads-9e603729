@@ -152,7 +152,7 @@ export function PylontechNav({ products }: { products: Product[] }) {
               {(SOL_PRODUCTS[sel] ?? []).length === 0 ? (
                 <p className="text-sm text-muted-foreground">لا توجد منتجات معروضة لهذا الحل حالياً.</p>
               ) : (
-                <div className="flex flex-wrap gap-x-6 gap-y-6">
+                <div className="grid grid-cols-4 gap-x-6 gap-y-6">
                   {SOL_PRODUCTS[sel]!.map((p) => (
                     <a key={p.slug} href="#products" onClick={close} className="w-[105px] text-center hover:text-[#00a5b0]">
                       <img src={`/media/pylontech/menu/${p.slug}.webp`} alt={p.t} className="mx-auto h-16 w-auto object-contain" loading="lazy" />
@@ -174,7 +174,7 @@ export function PylontechNav({ products }: { products: Product[] }) {
           <div className="mx-auto flex max-h-[calc(100vh-4rem)] max-w-7xl items-start justify-between gap-10 overflow-y-auto px-5 py-8">
             <div className="min-w-0 flex-1">
               <p className="mb-3 text-lg font-semibold">{m.label}</p>
-              <div className="grid grid-cols-4 gap-x-8">
+              <div className="flex max-w-xs flex-col">
                 {m.items.map((it) => <a key={it.t} href={it.h} onClick={close} className="py-2 text-sm hover:text-primary">{it.t}</a>)}
               </div>
               {m.id === "support" && <div className="mt-6 space-y-8"><ServicePanel /><Downloads products={products} /></div>}

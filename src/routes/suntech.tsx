@@ -97,9 +97,18 @@ function SuntechPage() {
           </div>
           <nav className="hidden items-center gap-1 lg:flex">
             {NAV.map((n, i) => (
-              <button key={n.label} onMouseEnter={() => setOpen(i)} className={`flex items-center gap-1 px-3 py-5 text-sm hover:text-[#e60012] ${open === i ? ACCENT : ""}`}>
-                {n.label}<ChevronDown className="h-3.5 w-3.5" />
-              </button>
+              <div key={n.label} className="relative" onMouseEnter={() => setOpen(i)}>
+                <button onClick={() => setOpen(open === i ? null : i)} className={`flex items-center gap-1 px-3 py-5 text-sm hover:text-[#e60012] ${open === i ? ACCENT : ""}`}>
+                  {n.label}<ChevronDown className="h-3.5 w-3.5" />
+                </button>
+                {open === i && (
+                  <div className="absolute right-0 top-full min-w-[230px] rounded-b-md border border-border border-t-2 border-t-[#e60012] bg-background py-2 shadow-lg">
+                    {n.items.map(([t, h]) => (
+                      <a key={t} href={h} onClick={() => setOpen(null)} className="block px-5 py-2.5 text-sm hover:bg-muted hover:text-[#e60012]">{t}</a>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </nav>
           <div className="flex items-center gap-2">
@@ -107,13 +116,6 @@ function SuntechPage() {
             <button className="lg:hidden" onClick={() => setMobile(true)} aria-label="القائمة"><Menu className="h-6 w-6" /></button>
           </div>
         </div>
-        {open !== null && (
-          <div className="hidden border-t border-border bg-background shadow-lg lg:block">
-            <div className="mx-auto flex max-w-7xl gap-10 px-5 py-6">
-              {NAV[open]?.items.map(([t, h]) => <a key={t} href={h} onClick={() => setOpen(null)} className="text-sm hover:text-[#e60012]">{t}</a>)}
-            </div>
-          </div>
-        )}
       </header>
 
       {mobile && (
