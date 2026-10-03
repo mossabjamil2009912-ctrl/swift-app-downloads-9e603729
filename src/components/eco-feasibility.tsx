@@ -234,7 +234,7 @@ export function EcoSystemStudy({ onSales }: { onSales?: () => void }) {
   const sys: CustomSystem = { panelName: f.panel, panelW: n(f.panelW), panels: n(f.panelN), invName: f.inv, invKw: n(f.invKw), invN: n(f.invN), batName: f.bat, batUnit: n(f.batKwh), batN: n(f.batN), capex };
   const roi = capex > 0 ? Math.round((cum / capex) * 100) : 0;
   const QUICK: Partial<Record<keyof typeof f, [string, string]>> = {
-    panel: ["Suntech", "Jinko"], panelW: ["720", "595"],
+    panel: ["Suntech 720W", "Suntech 595W"], panelW: ["720", "595"],
     inv: ["Deye", "Solis"], invKw: ["12", "50"],
     bat: ["Pylontech", "HiTHIUM"], batKwh: ["5.12", "16"],
   };
