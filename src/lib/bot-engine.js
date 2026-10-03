@@ -2725,7 +2725,8 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
   // حالة المسار الصناعي محفوظة داخل main_loads بصيغة JSON: { l:[24], c:'', m:'', ind:{...} }
   var IND_ACTS = { '1': 'صناعات غذائية', '2': 'بلاستيك وتعبئة', '3': 'معادن وورش', '4': 'نسيج وملابس', '5': 'مواد بناء وخرسانة', '6': 'تبريد وتجميد', '7': 'أخرى' };
   var IND_SRC = { '1': 'مولد فقط', '2': 'شبكة + مولد', '3': 'شبكة فقط', '4': 'يوجد نظام شمسي' };
-  var IND_GOAL = { '1': 'تقليل تشغيل المولد والديزل', '2': 'نظام كامل 24 ساعة (هجين + بطاريات + ATS)', '3': 'ربط بالشبكة فقط (On-Grid)' };
+  var IND_GOAL = { '1': 'منظومة نهارية للوردية (بطاريات احتياطية محدودة)', '2': 'منظومة هجينة تغطي التشغيل الليلي (بطاريات + ATS)', '3': 'ربط بالشبكة فقط (On-Grid)' };
+  var IND_STARTER = { '1': { t: 'تشغيل مباشر / ستار-دلتا', f: 3 }, '2': { t: 'بادئ ناعم Soft Starter', f: 2 }, '3': { t: 'مغيّر سرعة VFD', f: 1.2 } };
   var IND_MAX_INV = 10; // أكبر عدد انفرترات قبل التحويل للموظف
   var IND_ATS_SIZES = [63, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600];
   function indDigits(t) { return String(t || '').replace(/[٠-٩]/g, function (dd) { return String('٠١٢٣٤٥٦٧٨٩'.indexOf(dd)); }).replace(/[۰-۹]/g, function (dd) { return String('۰۱۲۳۴۵۶۷۸۹'.indexOf(dd)); }); }
@@ -2810,8 +2811,11 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
   }
   function indLoadSrcAsk() { return indHdr('بيانات الأحمال') + 'كيف تزودنا بأحمال المصنع؟\n\n1 — جدول أحمال Excel / PDF\n2 — صورة لوحات البيانات\n3 — إدخال القيم يدوياً'; }
   function indLoadFileAsk() { return indHdr('جدول الأحمال') + 'أرفق جدول الأحمال أو صور لوحات البيانات ليدققه الفريق الهندسي\n\nبعد الإرفاق سنطلب القيم الأساسية لإتمام التصميم الأولي، أو يمكنك تخطي هذه الخطوة والإدخال يدوياً'; }
-  function indTotalAsk() { return indHdr('حمل المصنع') + 'كم إجمالي الحمل الكهربائي لمصنعك بالكيلووات؟\n(مجموع ما يعمل معاً من ماكينات وإنارة وتكييف)\n\nاختر قيمة سريعة أو اكتب الرقم مباشرة'; }
+  function indTotalAsk() { return indHdr('الحمل النهاري') + 'كم الحمل الكهربائي للمصنع وقت الذروة النهارية بالكيلووات؟\n(مجموع ما يعمل معاً في نفس الوقت من ماكينات وإنارة وتكييف)\n\nاختر قيمة قريبة أو اكتب الرقم مباشرة'; }
+  function indNightAsk() { return indHdr('الحمل الليلي') + 'كم الحمل الذي يعمل ليلاً (بعد غروب الشمس) بالكيلووات؟\n(الماكينات العاملة في الوردية الليلية + الإنارة والتبريد والحراسة)\n\nهذه القيمة تحدد سعة البطاريات بدقة — اكتب 0 إن لم يوجد'; }
   function indMaxAsk() { return indHdr('أكبر ماكينة') + 'قدرة أكبر ماكينة أو محرك منفرد في المصنع بالكيلووات\nمثال: 30\n\nتحدد هذه القيمة تيار الإقلاع وسعة الإنفرترات اللازمة'; }
+  function indStarterAsk() { return indHdr('طريقة تشغيل المحرك') + 'كيف يتم تشغيل أكبر محرك في المصنع؟\n\n1 — تشغيل مباشر أو ستار-دلتا (تيار إقلاع عالٍ ×3)\n2 — بادئ ناعم Soft Starter (×2)\n3 — مغيّر سرعة VFD / إنفرتر (×1.2)\n\nطريقة التشغيل تحدد سعة الإنفرترات المطلوبة لتفادي الفصل عند الإقلاع'; }
+  function indBillAsk() { return indHdr('فاتورة الكهرباء') + 'كم متوسط فاتورة الكهرباء الشهرية للمصنع (بالريال)؟\nمثال: 1500000\n\nتُستخدم لحساب التوفير وفترة الاسترداد — اكتب 0 إن لم تعرف'; }
   function indMotorsAsk() { return indHdr('تيار الإقلاع') + 'هل توجد محركات ذات تيار إقلاع عالٍ مثل الضواغط والمضخات الكبيرة والكسارات والمصاعد؟\nهذا يحدد سعة الإنفرترات اللازمة لبدء التشغيل بأمان'; }
   function indMotorKwAsk() { return indHdr('قدرة المحرك') + 'قدرة أكبر محرك ذي تيار إقلاع عالٍ بالكيلووات\nمثال: 22'; }
   function indSourceAsk() { return indHdr('مصدر الكهرباء الحالي') + 'ما مصدر الكهرباء الحالي للمصنع؟\n\n1 — مولدات ديزل فقط\n2 — شبكة عامة + مولد\n3 — شبكة عامة فقط'; }
@@ -2819,15 +2823,42 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
   function indGenAsk() { return indHdr('المولد القائم') + 'قدرة المولد الحالي بوحدة kVA\nمثال: 250\n\nإن لم يوجد مولد فاكتب 0'; }
   function indDieselAsk() { return indHdr('استهلاك الوقود') + 'متوسط استهلاك المولد من الديزل باللتر في اليوم\nمثال: 300\n\nإن لم يوجد استهلاك وقود فاكتب 0'; }
   function indOldPvAsk() { return indHdr('المنظومة الشمسية القائمة') + 'إجمالي قدرة الألواح الحالية بالكيلووات\nمثال: 50'; }
-  function indGoalAsk() { return indHdr('الهدف من المنظومة') + 'ما الهدف الأساسي من المنظومة؟\n\n1 — تقليل تشغيل المولد والديزل (تغطية النهار مع بطاريات محدودة)\n2 — تشغيل كامل على مدار الساعة (هجين مع بطاريات ومولد احتياطي)\n3 — ربط بالشبكة فقط بدون بطاريات'; }
+  function indGoalAsk() { return indStarterAsk(); }
+  // يبني الحمل الساعي من الحمل النهاري والليلي الفعليين، لا من افتراض واحد للـ24 ساعة
   function indBuildProfile(ind) {
     var on = indShiftMap(ind.shifts), l = [];
     var op = parseFloat(ind.tot) || 0;
+    var nk = parseFloat(ind.nkw);
     var standby = Math.max(0.5, Math.round(op * 0.05 * 100) / 100);
-    // هدف "تقليل الديزل": تُحجَّم المنظومة على الورديات النهارية فقط (المولد يغطي الليل)
-    var dayOnly = String(ind.goal) === '1';
-    for (var h = 0; h < 24; h++) { var night = (h < 6 || h >= 18); l.push((on[h] && !(dayOnly && night)) ? op : standby); }
+    var nightLoad = isNaN(nk) ? standby : nk;
+    for (var h = 0; h < 24; h++) {
+      var night = (h < 6 || h >= 18);
+      if (!night) { l.push(on[h] ? op : standby); }
+      else { l.push(ind.nsh > 1 ? (on[h] ? nightLoad : Math.min(nightLoad, standby)) : standby); }
+    }
     return l;
+  }
+  // تنهي المسار: تستنتج نوع المنظومة من الورديات والحمل الليلي ثم تحسب التصميم
+  function indFinish() {
+    var i0 = indGet() || {};
+    var nightKw = parseFloat(i0.nkw) || 0;
+    var gl = (i0.nsh > 1 && nightKw > 0) ? '2' : '1';
+    indSet({ goal: gl, c: city, qn: 'ACTES-IND-' + String(Date.now()).slice(-6) });
+    var hsA = indHoursSummary(indGet());
+    daily_hours = String(hsA.total); night_hours = String(hsA.night);
+    var z = indSizing(); var ii = indGet();
+    if (!z || !ii) { step = 'ind_total_kw'; return W(' تعذر استرجاع بيانات المشروع، يرجى البدء من جديد._') + '\n' + indTotalAsk(); }
+    if (z.nInv > IND_MAX_INV) { return indOutOfRange(ii); }
+    system_type = ''; phase_type = z.inv.ph === 3 ? 'three' : 'single';
+    monthly_consumption = String(Math.round(z.daily * 30));
+    peak_load = String(z.peak);
+    inv_pick = SINV_IMG[z.inv.key] || null; inv_pick_line = 'انفرتر ' + z.inv.model;
+    quote_number = ii.qn;
+    pv_flow = true;
+    notify_employee = true;
+    notification_text = notifInd(z, ii, 'طلب منظومة صناعية جديد');
+    step = 'ind_result';
+    return indSummaryText(z, ii);
   }
   function indMode(goal) { return goal === '3' ? 'on' : 'hyb'; }
   function indAtsAmps(kva) {
@@ -2839,7 +2870,8 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
   function indAdjust(z, ind) {
     var op = parseFloat(ind.tot) || z.peak;
     var motor = parseFloat(ind.motorkw) || 0;
-    var startKw = motor > 0 ? (op - motor + motor * 3) : op * 1.25;
+    var sf = parseFloat(ind.sf) || 3;
+    var startKw = motor > 0 ? (op - motor + motor * sf) : op * 1.25;
     var needAc = Math.max(z.peak * 1.25, startKw);
     var nInv = z.nInv;
     if (z.inv.kwac * nInv < needAc) { nInv = Math.ceil(needAc / z.inv.kwac); }
@@ -2885,8 +2917,9 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     s += 'أولاً: التشغيل والأحمال\n';
     s += '• الورديات: ' + ind.shifts.length + ' — ' + hs.total + ' ساعة/يوم (نهار ' + hs.day + ' | ليل ' + hs.night + ')\n';
     s += '• الحمل التشغيلي: ' + (parseFloat(ind.tot) || 0) + ' kW | أكبر ماكينة: ' + (parseFloat(ind.maxm) || 0) + ' kW\n';
-    if (z.ind && z.ind.motor > 0) { s += '• تيار إقلاع: محرك ' + z.ind.motor + ' kW × 3 → قدرة مطلوبة ' + z.ind.needAc.toFixed(1) + ' kW\n'; }
-    s += '• الاستهلاك اليومي المصمم عليه: ' + z.daily.toFixed(1) + ' kWh (نهار ' + z.dayPct + '%)' + (ind.goal === '1' && hs.night > 0 ? ' — الورديات الليلية يغطيها المولد' : '') + '\n\n';
+    if (parseFloat(ind.nkw) > 0) { s += '• الحمل الليلي: ' + parseFloat(ind.nkw) + ' kW\n'; }
+    if (z.ind && z.ind.motor > 0) { s += '• تيار إقلاع: محرك ' + z.ind.motor + ' kW × ' + (parseFloat(ind.sf) || 3) + ' (' + ((IND_STARTER[ind.starter] || {}).t || 'تشغيل مباشر') + ') → قدرة مطلوبة ' + z.ind.needAc.toFixed(1) + ' kW\n'; }
+    s += '• الاستهلاك اليومي المصمم عليه: ' + z.daily.toFixed(1) + ' kWh (نهار ' + z.dayPct + '%)' + (ind.goal === '1' && hs.night > 0 ? ' — التشغيل الليلي يغطيه المولد' : '') + '\n\n';
     s += 'ثانياً: الألواح (PV)*\n' + z.nPan + ' × ' + z.pan.wp + ' وات = *' + z.kWp.toFixed(2) + ' kWp*\n' + z.pan.model + '\n\n';
     s += 'ثالثاً: الانفرترات\n' + z.nInv + ' × ' + z.inv.model + '\nالإجمالي: ' + (z.inv.kwac * z.nInv).toFixed(1) + ' kW — ' + (z.inv.ph === 3 ? 'ثلاثي الفاز' : 'أحادي الفاز') + '\n\n';
     s += 'رابعاً: البطاريات\n';
@@ -2901,6 +2934,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     if (z.diesel) {
       s += '\nسادساً: التوفير التقديري في الديزل\n' + z.diesel.savedDay + ' لتر/يوم ≈ *' + z.diesel.savedMonth + ' لتر/شهر (تغطية ' + z.diesel.pct + '%)\n';
     }
+    if (parseFloat(ind.bill) > 0) { s += '\nفاتورة الكهرباء الحالية: ' + Math.round(parseFloat(ind.bill)).toLocaleString('en-US') + ' ريال/شهر\n'; }
     s += SEP + '\nالمنظومة أعلاه تصميم أولي، ويُعتمد التصميم النهائي بعد مراجعة جدول الأحمال من الفريق الهندسي\n\nيمكنك إصدار عرض السعر الرسمي، أو طلب دراسة محاكاة الإنتاجية السنوية، أو المخطط التنفيذي للمنظومة';
     return W(s);
   }
@@ -2914,6 +2948,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     s += 'الحمل التشغيلي: ' + (ind.tot || '-') + ' kW | أكبر ماكينة: ' + (ind.maxm || '-') + ' kW | محرك إقلاع عالٍ: ' + (ind.motorkw ? ind.motorkw + ' kW' : 'لا') + '\n';
     s += 'ملف/صورة أحمال: ' + (ind.file ? 'نعم (مرفق في المحادثة)' : 'لا') + '\n';
     s += 'المصدر الحالي: ' + (IND_SRC[ind.src] || '-') + (ind.genkva ? ' — مولد ' + ind.genkva + ' kVA' : '') + (ind.diesel ? ' — ديزل ' + ind.diesel + ' لتر/يوم' : '') + (ind.pvold ? ' — PV حالي ' + ind.pvold + ' kWp' : '') + '\n';
+    s += 'الحمل الليلي: ' + (parseFloat(ind.nkw) || 0) + ' kW | تشغيل المحرك: ' + ((IND_STARTER[ind.starter] || {}).t || '-') + (parseFloat(ind.bill) > 0 ? ' | فاتورة: ' + ind.bill + ' ريال/شهر' : '') + '\n'
     s += 'الهدف: ' + (IND_GOAL[ind.goal] || '-') + '\n' + SEP + '\n';
     if (z) {
       s += 'المقترح: ' + z.kWp.toFixed(1) + ' kWp | ' + z.nInv + '× ' + z.inv.model + ' | بطاريات ' + z.nBat + '× ' + (z.nBat > 0 ? z.bat.model : '-') + '\n';
@@ -3269,9 +3304,18 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     plan_pick: 'qnext_ask',
     study_ask: 'plan_pick',
     sld_ask: 'plan_pick',
-    ind_total_kw: 'menu_sys3',
-    ind_goal: 'ind_total_kw',
-    ind_result: 'ind_goal',
+    ind_activity: 'menu_sys3',
+    ind_shifts: 'ind_activity',
+    ind_total_kw: 'ind_shifts',
+    ind_night_kw: 'ind_total_kw',
+    ind_max_mach: 'ind_total_kw',
+    ind_starter: 'ind_max_mach',
+    ind_source: 'ind_starter',
+    ind_gen_kva: 'ind_source',
+    ind_diesel: 'ind_gen_kva',
+    ind_bill: 'ind_source',
+    ind_goal: 'ind_source',
+    ind_result: 'ind_source',
     ind_loc: 'ind_result',
     ind_quote_ask: 'ind_result',
 
@@ -3338,6 +3382,9 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     if (st === 'ind_gen_kva') { return indGenAsk(); }
     if (st === 'ind_diesel') { return indDieselAsk(); }
     if (st === 'ind_goal') { return indGoalAsk(); }
+    if (st === 'ind_night_kw') { return indNightAsk(); }
+    if (st === 'ind_starter') { return indStarterAsk(); }
+    if (st === 'ind_bill') { return indBillAsk(); }
     if (st === 'ind_result') { return indResultAsk(); }
     if (st === 'ind_quote_ask') { return m('quote_ask'); }
     if (st === 'agr_quote_ask') { return m('quote_next'); }
@@ -3434,6 +3481,9 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     if (st === 'ind_gen_kva') { return indGenAsk(); }
     if (st === 'ind_diesel') { return indDieselAsk(); }
     if (st === 'ind_goal') { return indGoalAsk(); }
+    if (st === 'ind_night_kw') { return indNightAsk(); }
+    if (st === 'ind_starter') { return indStarterAsk(); }
+    if (st === 'ind_bill') { return indBillAsk(); }
     if (st === 'ind_result') { return indResultAsk(); }
     if (st === 'ind_quote_ask') { return m('quote_ask'); }
     if (st === 'agr_quote_ask') { return m('quote_next'); }
@@ -3619,7 +3669,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     if (text === '1') { menu_choice = '1'; res_method = ''; step = 'res_bill'; response = resMethodAsk(); }
     else if (text === '2') { menu_choice = '2'; step = 'com_method'; response = comMethodAsk(); }
     else if (text === '3') { menu_choice = '4'; agrInit(); step = 'agr_pump_type'; response = agrPumpTypeAsk(); }
-    else if (text === '4') { menu_choice = '3'; indInit(customer_name || ''); step = 'ind_total_kw'; response = indTotalAsk(); }
+    else if (text === '4') { menu_choice = '3'; indInit(customer_name || ''); step = 'ind_activity'; response = indActivityAsk(); }
     else { response = noOpt(W(' اختر نوع المنظومة\n' + SEP + '\n1 - النظام السكني\n2 - النظام التجاري\n4 - النظام الصناعي\n3 - النظام الزراعي')); }
 
 
@@ -3735,7 +3785,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     else { response = noOpt(W('اختر نوع النظام:')); }
 
   } else if (step === 'menu_ind_agr') {
-    if (text === '1') { menu_choice = '3'; indInit(customer_name || ''); step = 'ind_total_kw'; response = indTotalAsk(); }
+    if (text === '1') { menu_choice = '3'; indInit(customer_name || ''); step = 'ind_activity'; response = indActivityAsk(); }
     else if (text === '2') { menu_choice = '4'; agrInit(); step = 'agr_pump_type'; response = agrPumpTypeAsk(); }
     else { response = noOpt(W('اختر نوع النظام:')); }
 
@@ -3864,10 +3914,19 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     if (text === '__media__') { response = W(' تم استلام الملف\n' + SEP) + '\n' + indTotalAsk(); }
     else if (isNaN(_tk) || _tk <= 0) { response = noOpt(indTotalAsk()); }
     else {
-      var _mAuto = Math.max(1, Math.round(_tk * 0.3));
-      indSet({ tot: _tk, maxm: _mAuto, motorkw: _mAuto, src: '2', genkva: 0, diesel: 0 });
-      peak_load = String(_tk); step = 'ind_goal'; response = indGoalAsk();
+      indSet({ tot: _tk, nkw: 0, genkva: 0, diesel: 0, bill: 0 });
+      peak_load = String(_tk);
+      var _nsh0 = (indGet() || {}).nsh || 1;
+      if (_nsh0 > 1) { step = 'ind_night_kw'; response = indNightAsk(); }
+      else { step = 'ind_max_mach'; response = indMaxAsk(); }
     }
+
+  } else if (step === 'ind_night_kw') {
+    var _nk = indNum(text);
+    var _totN = parseFloat((indGet() || {}).tot) || 0;
+    if (isNaN(_nk) || _nk < 0) { response = noOpt(indNightAsk()); }
+    else if (_nk > _totN) { response = W('الحمل الليلي لا يمكن أن يزيد عن الحمل النهاري (' + _totN + ' kW)') + '\n\n' + indNightAsk(); }
+    else { indSet({ nkw: _nk }); step = 'ind_max_mach'; response = indMaxAsk(); }
 
   } else if (step === 'ind_max_mach') {
     var _indT = indGet() || {};
@@ -3875,12 +3934,18 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     var _unk2 = (text === 'unknown' || /لا اعرف|لا أعرف|لااعرف/.test(String(text)));
     var _mk2 = _unk2 ? Math.max(1, Math.round(_totKw * 0.3)) : indNum(text);
     if (isNaN(_mk2) || _mk2 <= 0) { response = noOpt(indMaxAsk()); }
-    else { indSet({ maxm: _mk2, motorkw: _mk2 }); step = 'ind_source'; response = indSourceAsk(); }
+    else if (_mk2 > _totKw) { response = W('قدرة أكبر ماكينة لا يمكن أن تزيد عن الحمل الكلي (' + _totKw + ' kW)') + '\n\n' + indMaxAsk(); }
+    else { indSet({ maxm: _mk2, motorkw: _mk2 }); step = 'ind_starter'; response = indStarterAsk(); }
+
+  } else if (step === 'ind_starter') {
+    var _st = String(text).replace(/^starter_/, '');
+    if (IND_STARTER[_st]) { indSet({ starter: _st, sf: IND_STARTER[_st].f }); step = 'ind_source'; response = indSourceAsk(); }
+    else { response = noOpt(indStarterAsk()); }
 
   } else if (step === 'ind_source') {
     var _sr = String(text).replace(/^src_/, '');
     if (_sr === '1' || _sr === '2') { indSet({ src: _sr }); step = 'ind_gen_kva'; response = indGenAsk(); }
-    else if (_sr === '3') { indSet({ src: _sr, genkva: 0, diesel: 0 }); step = 'ind_goal'; response = indGoalAsk(); }
+    else if (_sr === '3') { indSet({ src: _sr, genkva: 0, diesel: 0 }); step = 'ind_bill'; response = indBillAsk(); }
     else { response = noOpt(indSourceAsk()); }
 
   } else if (step === 'ind_gen_kva') {
@@ -3891,35 +3956,20 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
   } else if (step === 'ind_diesel') {
     var _dl = (text === 'unknown' || /لا اعرف|لا أعرف|لااعرف/.test(String(text))) ? 0 : indNum(text);
     if (isNaN(_dl) || _dl < 0) { response = noOpt(indDieselAsk()); }
-    else { indSet({ diesel: _dl }); step = 'ind_goal'; response = indGoalAsk(); }
+    else {
+      indSet({ diesel: _dl });
+      if ((indGet() || {}).src === '2') { step = 'ind_bill'; response = indBillAsk(); }
+      else { response = indFinish(); }
+    }
 
-
+  } else if (step === 'ind_bill') {
+    var _bl = (text === 'unknown' || /لا اعرف|لا أعرف|لااعرف/.test(String(text))) ? 0 : indNum(text);
+    if (isNaN(_bl) || _bl < 0) { response = noOpt(indBillAsk()); }
+    else { indSet({ bill: _bl }); response = indFinish(); }
 
   } else if (step === 'ind_goal') {
-    var _gl = String(text).replace(/^goal_/, '');
-    if (_gl !== '1' && _gl !== '2' && _gl !== '3') { response = noOpt(indGoalAsk()); }
-    else {
-      var _shAuto = indShiftPreset(_gl === '2' ? 3 : 1);
-      indSet({ goal: _gl, shifts: _shAuto, nsh: _shAuto.length, cur: _shAuto.length, c: city, qn: 'ACTES-IND-' + String(Date.now()).slice(-6) });
-      var _hsAuto = indHoursSummary(indGet());
-      daily_hours = String(_hsAuto.total); night_hours = String(_hsAuto.night);
-      var _indZ = indSizing();
-      var _indI = indGet();
-      if (!_indZ || !_indI) { step = 'ind_total_kw'; response = W(' تعذر استرجاع بيانات المشروع، يرجى البدء من جديد._') + '\n' + indTotalAsk(); }
-      else if (_indZ.nInv > IND_MAX_INV) { response = indOutOfRange(_indI); }
-      else {
-        system_type = ''; phase_type = _indZ.inv.ph === 3 ? 'three' : 'single';
-        monthly_consumption = String(Math.round(_indZ.daily * 30));
-        peak_load = String(_indZ.peak);
-        inv_pick = SINV_IMG[_indZ.inv.key] || null; inv_pick_line = 'انفرتر ' + _indZ.inv.model;
-        quote_number = _indI.qn;
-        pv_flow = true;
-        notify_employee = true;
-        notification_text = notifInd(_indZ, _indI, 'طلب منظومة صناعية جديد');
-        step = 'ind_result';
-        response = indSummaryText(_indZ, _indI);
-      }
-    }
+    // سؤال الهدف أُلغي: الهدف يُستنتج من الورديات والأحمال الليلية
+    response = indFinish();
 
   } else if (step === 'ind_result') {
     var _rz = pvDesign(); var _ri = indGet();
@@ -4702,11 +4752,11 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
         { id: 'src_3', title: 'شبكة فقط' }
       ] } ] };
     }
-    if (st === 'ind_goal') {
+    if (st === 'ind_starter' || st === 'ind_goal') {
       return { kind: 'buttons', buttons: [
-        { id: 'goal_1', title: 'تقليل الديزل' },
-        { id: 'goal_2', title: 'نظام كامل 24 ساعة' },
-        { id: 'goal_3', title: 'ربط بالشبكة' }
+        { id: 'starter_1', title: 'تشغيل مباشر / ستار-دلتا' },
+        { id: 'starter_2', title: 'بادئ ناعم Soft Starter' },
+        { id: 'starter_3', title: 'مغيّر سرعة VFD' }
       ] };
     }
     if (st === 'ind_result') {
@@ -4716,7 +4766,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
         { id: 'ind_sld', title: 'مخطط SLD' }
       ] };
     }
-    if (st === 'ind_gen_kva' || st === 'ind_diesel') {
+    if (st === 'ind_gen_kva' || st === 'ind_diesel' || st === 'ind_bill' || st === 'ind_night_kw') {
       return { kind: 'buttons', buttons: [ backBtn() ] };
     }
     if (st === 'ind_max_mach') {
