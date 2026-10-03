@@ -1794,12 +1794,12 @@ function QuoteActions({ onPick, hideEngineering = false, onEco }: { onPick: (val
           key={action.id}
           type="button"
           onClick={() => { if (action.id === "aq_eco" && onEco) { onEco(); return; } onPick(action.id); }}
-          className={`flex items-center gap-3 rounded-xl px-4 py-3 text-right shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-lg ${action.className}`}
+          className={`group flex items-center gap-3 rounded-lg p-3 text-right shadow-sm transition hover:shadow-md ${action.className}`}
         >
-          <span className={`grid size-9 shrink-0 place-items-center rounded-lg [&_svg]:size-4 ${action.chip}`}>{action.icon}</span>
+          <span className={`grid size-9 shrink-0 place-items-center rounded-lg [&_svg]:size-4.5 ${action.chip}`}>{action.icon}</span>
           <span className="min-w-0 flex-1">
-            <span className="block text-[13px] font-black leading-5">{action.title}</span>
-            <span className="block text-[10px] font-semibold leading-4 opacity-85">{action.note}</span>
+            <span className="block text-sm font-black leading-5">{action.title}</span>
+            <span className="block text-[11px] font-semibold leading-4 opacity-85">{action.note}</span>
           </span>
           <ArrowLeft className="size-4 shrink-0 opacity-80" />
         </button>
@@ -2015,13 +2015,17 @@ function OptionGrid({ options, selected, projectCards = false, energyCards = fal
             {spec && (
               <span className="inline-flex w-fit items-center rounded-md bg-skyline/10 px-2 py-0.5 text-[11px] font-black text-skyline" dir="ltr">{spec}</span>
             )}
-            {details && <span className="block text-[10px] leading-4 text-muted-foreground">{details}</span>}
+            {details && <small className="text-[11px] font-semibold leading-4 text-muted-foreground">{details}</small>}
             {priceMatch && (
-              <span className="mt-auto inline-flex w-fit items-center gap-1 rounded-full bg-energy/10 px-2 py-0.5 text-[10px] font-black text-energy">
+              <span className="inline-flex w-fit items-center gap-1 rounded-full bg-energy/10 px-2 py-0.5 text-[10px] font-black text-energy">
                 <CircleDollarSign className="size-3" />
                 {(priceMatch[1] ?? "").trim()}
               </span>
             )}
+              <span className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-black text-brand">
+                {active ? "تم الاختيار" : "اختر"} <ArrowLeft className="size-3.5 transition group-hover:-translate-x-0.5" />
+              </span>
+            </span>
           </button>
         );
       })}
