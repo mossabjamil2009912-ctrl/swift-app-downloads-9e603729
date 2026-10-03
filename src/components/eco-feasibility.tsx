@@ -197,7 +197,7 @@ export function EcoSystemStudy({ onSales }: { onSales?: () => void }) {
     const sun = Array.from({ length: 24 }, (_, h) => (h >= 6 && h < 18 ? Math.sin(((h - 6 + 0.5) / 12) * Math.PI) : 0));
     const ss = sun.reduce((a, b) => a + b, 0);
     let direct = 0, excess = 0;
-    sun.forEach((s, h) => { const p = (dailyKwh * s) / ss; direct += Math.min(p, loadKw[h]); excess += Math.max(0, p - loadKw[h]); });
+    sun.forEach((s, h) => { const p = (dailyKwh * s) / ss; direct += Math.min(p, (loadKw[h] ?? 0)); excess += Math.max(0, p - (loadKw[h] ?? 0)); });
     const night = loadDay - direct;
     covered = direct + Math.min(excess * 0.9, batKwh * DOD, night);
   }
