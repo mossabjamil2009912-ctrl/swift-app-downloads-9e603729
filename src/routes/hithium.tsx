@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ArrowRight, BatteryCharging, FileText, Flame, Gauge, Layers, ShieldCheck, Thermometer } from "lucide-react";
 import actesLogo from "@/assets/actes-logo-full.webp";
 import { PRODUCTS, type Product } from "@/lib/products-data";
+import { BrandProductDetail } from "@/components/brand-product-detail";
 import { useResolvedVideoSrc } from "@/lib/video-source";
 
 export const Route = createFileRoute("/hithium")({
@@ -56,6 +57,7 @@ function HiNav() {
 
 function HithiumPage() {
   const items = PRODUCTS.filter((p) => /hithium/i.test(p.brand));
+  const [sel, setSel] = useState<Product | null>(null);
   const video = useResolvedVideoSrc("/videos/hithium-heroee-maxpower-16.mp4");
   const files = items.flatMap((p) => p.files.map((f) => ({ ...f, name: p.model || p.name, ar: f.url.replace("/catalogs/", "/catalogs/official-ar/") })));
   return (
@@ -84,7 +86,7 @@ function HithiumPage() {
 
       <section id="products" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-12">
         <h2 className="mb-8 text-center text-2xl font-bold sm:text-3xl">المنتجات</h2>
-        <div className="space-y-6">{items.map((p) => <ProductBlock key={p.id} p={p} />)}</div>
+        <div className="space-y-6">{items.map((p) => <ProductBlock key={p.id} p={p} onOpen={() => setSel(p)} />)}</div>
       </section>
 
       <section id="tech" className="scroll-mt-20 bg-muted/50 py-12">
@@ -115,11 +117,12 @@ function HithiumPage() {
       </section>
 
       <footer className="border-t border-border bg-card py-8 text-center text-sm text-muted-foreground">HiTHIUM — متوفر لدى ACTES لحلول أنظمة الطاقة</footer>
+      {sel && <BrandProductDetail product={sel} accent="#00a0e9" gallery={["/media/hithium-legend-112s.jpg","/media/hithium-legend-112c.jpg","/media/items/battery-hithium-legnd-16kwh.jpg","/media/items/battery-hithium-12v-314ah.jpg"]} onClose={() => setSel(null)} />}
     </main>
   );
 }
 
-function ProductBlock({ p }: { p: Product }) {
+function ProductBlock({ p, onOpen }: { p: Product; onOpen: () => void }) {
   const [open, setOpen] = useState(false);
   return (
     <article className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
@@ -132,6 +135,7 @@ function ProductBlock({ p }: { p: Product }) {
           <p className="mt-3 text-sm leading-7">{p.about}</p>
           <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">{p.features.slice(0, 6).map((f) => <li key={f} className="flex gap-2 text-sm"><span className="text-primary">●</span>{f}</li>)}</ul>
           <div className="mt-4 flex flex-wrap gap-2">
+            <button onClick={onOpen} className="rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background hover:opacity-90">تفاصيل المنتج</button>
             {p.specs.length > 0 && <button onClick={() => setOpen((v) => !v)} className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90">{open ? "إخفاء المواصفات" : "المواصفات الفنية"}</button>}
             {p.files.map((f) => <a key={f.url} href={f.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-border px-5 py-2 text-sm hover:bg-muted"><FileText className="h-4 w-4" /> الكتالوج</a>)}
           </div>
