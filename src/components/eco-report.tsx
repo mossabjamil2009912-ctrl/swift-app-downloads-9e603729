@@ -92,7 +92,7 @@ const Sec = ({ n, kicker, title, note, children }: { n: string; kicker: string; 
   </section>
 );
 
-const Kpi = ({ t, v, s }: { t: string; v: string; s?: string }) => (
+const Kpi = ({ t, v, s }: { t: string; v: string; s?: string | undefined }) => (
   <div className="rounded-lg border border-border bg-background p-3">
     <p className="text-[11px] font-bold text-muted-foreground">{t}</p>
     <p className="mt-1 text-lg font-black tabular-nums text-navy">{v}</p>
@@ -105,7 +105,7 @@ const X = (h: number) => P.l + ((W - P.l - P.r) * h) / 24;
 function Frame({ max, unit, children }: { max: number; unit: string; children: React.ReactNode }) {
   const y = (v: number) => P.t + (H - P.t - P.b) * (1 - v / max);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" dir="ltr">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ direction: "ltr" }}>
       {[0, 0.25, 0.5, 0.75, 1].map((f) => (
         <g key={f}><line x1={P.l} x2={W - P.r} y1={y(max * f)} y2={y(max * f)} stroke={C.grid} strokeDasharray="3 3" />
           <text x={P.l - 4} y={y(max * f) + 3} fontSize="9" textAnchor="end" fill="#666">{nf(max * f)}{unit}</text></g>
@@ -119,7 +119,7 @@ const Legend = ({ items }: { items: [string, string][] }) => (
   <div className="mt-2 flex flex-wrap gap-3 text-[11px]">{items.map(([c, l]) => <span key={l} className="inline-flex items-center gap-1.5"><i className="inline-block size-2.5 rounded-sm" style={{ background: c }} />{l}</span>)}</div>
 );
 
-export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales }: { kw: number[]; price: number; onBuy?: () => void; onEdit: () => void; onSales?: () => void }) {
+export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales }: { kw: number[]; price: number; onBuy?: (() => void) | undefined; onEdit: () => void; onSales?: (() => void) | undefined }) {
   const d = useMemo(() => design(kw), [kw]);
   const e = econ(d.total, d.genE, d.capex, price0);
   const [price, setPrice] = useState(price0);
@@ -298,7 +298,7 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales }: { kw: n
             <div>
               <p className="text-xs font-black">حالة شحن البطاريات — 24 ساعة</p>
               <p className="text-[10px] text-muted-foreground">الحد الأدنى الآمن 10% وفق عمق تفريغ 90% • السعة القابلة للاستخدام {nf(d.batKwh * DOD)} kWh</p>
-              <svg viewBox={`0 0 ${W} ${H}`} className="w-full" dir="ltr">
+              <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ direction: "ltr" }}>
                 {[0, 25, 50, 75, 100].map((v) => <g key={v}><line x1={P.l} x2={W - P.r} y1={ys(v)} y2={ys(v)} stroke={C.grid} strokeDasharray="3 3" /><text x={P.l - 4} y={ys(v) + 3} fontSize="9" textAnchor="end" fill="#666">{v}%</text></g>)}
                 {[0, 4, 8, 12, 16, 20].map((h) => <text key={h} x={X(h)} y={H - 8} fontSize="9" textAnchor="middle" fill="#666">{hh(h)}</text>)}
                 <path d={`M${X(0)},${ys(d.hours[23]!.soc)} ${d.hours.map((x) => `L${X(x.h + 1)},${ys(x.soc)}`).join(" ")} L${X(24)},${ys(0)} L${X(0)},${ys(0)} Z`} fill={C.bat} opacity={0.15} />
