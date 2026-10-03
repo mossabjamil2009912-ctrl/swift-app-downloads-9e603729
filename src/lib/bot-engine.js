@@ -165,8 +165,8 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
 
   function goWelcome() { return WELCOME_SERVICES_AR; }
   function energyWelcome() { return 'مرحباً بك في مسار حلول الطاقة\n' + SEP + '\nاختر الخدمة المطلوبة من الأزرار التالية:_'; }
-  function ecoModeMsg() { return ' دراسة الجدوى الاقتصادية\n' + SEP + '\nلنحسب لك 3 سيناريوهات للمنظومة المناسبة مع توفير الديزل وفترة الاسترداد.\nما البيانات المتوفرة لديك؟\n\n1 — بيانات الديزل (لتر لكل ساعة)\n2 — بيانات الاحمال (kW لكل ساعة)_'; }
-  function ecoHoursMsg(k) { return k === 'diesel' ? ' استهلاك الديزل الساعي\n' + SEP + '\nاكتب استهلاك المولد باللتر في كل ساعة من الساعات الأربع والعشرين._' : ' الأحمال الساعية\n' + SEP + '\nاكتب الحمل بالكيلووات في كل ساعة من الساعات الأربع والعشرين._'; }
+  function ecoModeMsg() { return ' دراسة الجدوى الاقتصادية\n' + SEP + '\nلنحسب لك 3 سيناريوهات للمنظومة المناسبة مع توفير الديزل وفترة الاسترداد.\nما البيانات المتوفرة لديك؟\n\n1 — بيانات الديزل (لتر لكل ساعة)\n2 — بيانات الاحمال (kW لكل ساعة)\n3 — بيانات المنظومة (منظومة جاهزة بسعرها)_'; }
+  function ecoHoursMsg(k) { if (k === 'system') { return ' بيانات المنظومة\n' + SEP + '\nاكتب بيانات منظومتك وتكلفتها بالدولار لنحسب جدواها الاقتصادية._'; } return k === 'diesel' ? ' استهلاك الديزل الساعي\n' + SEP + '\nاكتب استهلاك المولد باللتر في كل ساعة من الساعات الأربع والعشرين._' : ' الأحمال الساعية\n' + SEP + '\nاكتب الحمل بالكيلووات في كل ساعة من الساعات الأربع والعشرين._'; }
   function goStart() { return WEL_AR; }
 
   var EMP_PHONE = '773590979';
@@ -3323,6 +3323,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     eco_mode: 'energy_menu',
     eco_diesel_hours: 'eco_mode',
     eco_loads_hours: 'eco_mode',
+    eco_system_hours: 'eco_mode',
     pv_sysmode: 'pv_loads',
     pv_study_ask: 'pv_sysmode',
     pv_sld_ask: 'pv_study_ask',
@@ -3392,6 +3393,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     if (st === 'pv_loads') { return loadsTableMsg(); }
     if (st === 'eco_mode') { return ecoModeMsg(); }
     if (st === 'eco_diesel_hours') { return ecoHoursMsg('diesel'); }
+    if (st === 'eco_system_hours') { return ecoHoursMsg('system'); }
     if (st === 'eco_loads_hours') { return ecoHoursMsg('loads'); }
     if (st === 'pv_sysmode') { return W(' نوع النظام\n' + SEP + '\n1 — هجين (Hybrid)\n2 — مستقل (Off-Grid)\n3 — متصل بالشبكة (On-Grid)'); }
     if (st === 'pv_study_ask') { return W(' هل ترغب بدراسة PVsyst تفصيلية؟_'); }
@@ -3491,6 +3493,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     if (st === 'pv_loads') { return loadsTableMsg(); }
     if (st === 'eco_mode') { return ecoModeMsg(); }
     if (st === 'eco_diesel_hours') { return ecoHoursMsg('diesel'); }
+    if (st === 'eco_system_hours') { return ecoHoursMsg('system'); }
     if (st === 'eco_loads_hours') { return ecoHoursMsg('loads'); }
     if (st === 'pv_sysmode') { return W(' نوع النظام\n' + SEP + '\n1 — هجين (Hybrid)\n2 — مستقل (Off-Grid)\n3 — متصل بالشبكة (On-Grid)'); }
     if (st === 'pv_study_ask') { return W(' هل ترغب بدراسة PVsyst تفصيلية؟_'); }
@@ -3650,6 +3653,9 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
   } else if (step === 'eco_mode') {
     if (text === 'eco_diesel' || text === '1') { step = 'eco_diesel_hours'; response = ecoHoursMsg('diesel'); }
     else if (text === 'eco_loads' || text === '2') { step = 'eco_loads_hours'; response = ecoHoursMsg('loads'); }
+    else if (text === 'eco_system' || text === '3') { step = 'eco_system_hours'; response = ecoHoursMsg('system'); }
+  } else if (step === 'eco_system_hours') {
+    response = ecoHoursMsg('system');
     else { response = noOpt(ecoModeMsg()); }
   } else if (step === 'eco_diesel_hours' || step === 'eco_loads_hours') {
     // طلب عرض سعر من دراسة الجدوى: تُعتمد الأحمال الساعية وتُصمم منظومة هجينة ثم يصدر العرض الرسمي
@@ -4678,10 +4684,11 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
       return { kind: 'buttons', buttons: [
         { id: 'eco_diesel', title: 'بيانات الديزل' },
         { id: 'eco_loads', title: 'بيانات الاحمال' },
+        { id: 'eco_system', title: 'بيانات المنظومة' },
         backBtn()
       ] };
     }
-    if (st === 'eco_diesel_hours' || st === 'eco_loads_hours') { return { kind: 'buttons', buttons: [ backBtn() ] }; }
+    if (st === 'eco_diesel_hours' || st === 'eco_loads_hours' || st === 'eco_system_hours') { return { kind: 'buttons', buttons: [ backBtn() ] }; }
     if (st === 'quote_menu') {
       return { kind: 'buttons', buttons: [
         { id: '1', title: 'منظومة متكاملة' },

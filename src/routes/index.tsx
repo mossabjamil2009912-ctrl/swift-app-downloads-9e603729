@@ -9,7 +9,7 @@ import { startVoiceWarmup } from "@/lib/voice-warmup";
 import { preloadAppImages } from "@/lib/preload-images";
 import PvsystStudy from "@/components/pvsyst-study";
 import EconomicStudy from "@/components/economic-study";
-import { EcoFeasibility } from "@/components/eco-feasibility";
+import { EcoFeasibility, EcoSystemStudy } from "@/components/eco-feasibility";
 import SldDiagram from "@/components/sld-diagram";
 import QuoteVariants from "@/components/quote-variants";
 import { applyVariantToSldParams, applyVariantToStudyParams, buildVariants, type VariantId } from "@/lib/system-variants";
@@ -1738,6 +1738,8 @@ function QuoteWorkspace({ view, session, step, draft, setDraft, onPick, onBack, 
                   ? (() => { const info = shiftEntryInfo(session); return <ShiftEntry key={`shift-${info.offset}-${info.count}`} count={info.count} offset={info.offset} onSubmit={onPick} />; })()
                   : step === "pv_loads"
                     ? <HourlyLoadEntry onSubmit={onPick} />
+                    : step === "eco_system_hours"
+                    ? <EcoSystemStudy onSales={() => onPick("team")} />
                     : step === "eco_diesel_hours" || step === "eco_loads_hours"
                     ? <EcoFeasibility key={step} mode={step === "eco_diesel_hours" ? "diesel" : "loads"} onBuy={(loads) => onPick(`eco_quote\n${loads}`)} onSales={() => onPick("team")} />
                     : <DataEntry value={draft} onChange={setDraft} prompt={entryPrompt(step, session)} onSubmit={submit} presets={entryPresets(step, session)} onQuick={onPick} />)}
