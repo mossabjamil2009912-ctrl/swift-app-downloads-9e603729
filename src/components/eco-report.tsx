@@ -180,7 +180,7 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system }:
               <p className="mt-2 text-3xl font-black leading-tight sm:text-5xl" style={{ color: R.red }}>{d.custom ? "منظومة العميل" : "المنظومة المقترحة"}</p>
               <p className="mt-4 text-sm" style={{ color: R.sub }}>دراسة فنية ومالية تنفيذية مقدمة من ACTES • إصدار {new Date().getFullYear()}</p>
             </div>
-            <div className="rounded-xl border bg-white p-5 shadow-md" style={{ borderColor: R.line, borderTop: `5px solid ${R.red}` }}>
+            <div className="rounded-xl border bg-white p-5 shadow-md lg:order-first" style={{ borderColor: R.line, borderTop: `5px solid ${R.red}` }}>
               <p className="text-[12px] font-black" style={{ color: "#4b5563" }}>ملخص الاستثمار</p>
               {[["الاستثمار المطلوب", d.capex], ["التوفير في 5 سنوات", e.sav5], ["صافي القيمة المتحققة", e.net5]].map(([l, v]) => (
                 <div key={l as string} className="flex items-center justify-between border-b py-3.5" style={{ borderColor: R.line }}><span className="text-sm" style={{ color: "#4b5563" }}>{l}</span><b className="text-xl tabular-nums">${nf(v as number)}</b></div>
