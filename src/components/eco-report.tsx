@@ -1,4 +1,4 @@
-import { ShoppingCart, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ShoppingCart, Download } from "lucide-react";
 
 // تقرير دراسة الجدوى التنفيذي — مقارنة وضع المولد فقط بالمنظومة المقترحة (شمس + تخزين)

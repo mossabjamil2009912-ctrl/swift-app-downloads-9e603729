@@ -1,5 +1,5 @@
 import { ShoppingCart, useEffect, useMemo, useState } from "react";
-import { ShoppingCart, createPortal } from "react-dom";
+import { createPortal } from "react-dom";
 import { ShoppingCart, X, FileText, Download } from "lucide-react";
 import { EcoReport, ecoSummary, type CustomSystem } from "./eco-report";
 
