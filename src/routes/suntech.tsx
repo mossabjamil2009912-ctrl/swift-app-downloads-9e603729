@@ -4,6 +4,7 @@ import { ArrowRight, ChevronDown, Download, FileText, Mail, Menu, X } from "luci
 import actesLogo from "@/assets/actes-logo-full.webp";
 import { PRODUCTS } from "@/lib/products-data";
 import { officialCatalogUrl } from "@/lib/official-catalogs";
+import { BrandProductDetail } from "@/components/brand-product-detail";
 
 export const Route = createFileRoute("/suntech")({
   head: () => ({
@@ -74,7 +75,9 @@ const DL_TABS = ["نشرات المنتجات", "الملف التعريفي", "
 const DL_URL = "https://www.suntech-power.com/download/";
 
 function SuntechPage() {
-  const items = PRODUCTS.filter((p) => p.brand === "Suntech");
+  const items = PRODUCTS.filter((p) => p.brand === "Suntech" && p.category === "panels");
+  const [detail, setDetail] = useState<string | null>(null);
+  const detailP = items.find((p) => p.id === detail);
   const [slide, setSlide] = useState(0);
   const [open, setOpen] = useState<number | null>(null);
   const [mobile, setMobile] = useState(false);
@@ -168,7 +171,7 @@ function SuntechPage() {
             const ar = officialCatalogUrl(p, "ar");
             const en = officialCatalogUrl(p, "en");
             return (
-              <div key={p.id} className="flex gap-5 rounded-lg border border-border bg-background p-5">
+              <div key={p.id} onClick={() => setDetail(p.id)} role="button" className="flex cursor-pointer gap-5 rounded-lg border border-border bg-background p-5 transition hover:border-[#e60012] hover:shadow-lg">
                 <img src={p.image} alt={p.model} className="h-40 w-28 rounded object-cover" />
                 <div className="flex-1">
                   <p className="text-xs text-muted-foreground">متوفر لدى ACTES</p>
@@ -176,8 +179,8 @@ function SuntechPage() {
                   <p className="text-sm text-muted-foreground" dir="ltr" style={{ textAlign: "right" }}>{p.model}</p>
                   <p className={`mt-2 text-lg font-bold ${ACCENT}`} dir="ltr" style={{ textAlign: "right" }}>{p.power}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {ar && <a href={ar} target="_blank" rel="noreferrer" className="flex items-center gap-1 rounded-full bg-[#e60012] px-3 py-1.5 text-xs text-background"><FileText className="h-3.5 w-3.5" />الكتالوج بالعربية</a>}
-                    {en && <a href={en} target="_blank" rel="noreferrer" className="flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs"><Download className="h-3.5 w-3.5" />EN Datasheet</a>}
+                    {ar && <a onClick={(e) => e.stopPropagation()} href={ar} target="_blank" rel="noreferrer" className="flex items-center gap-1 rounded-full bg-[#e60012] px-3 py-1.5 text-xs text-background"><FileText className="h-3.5 w-3.5" />الكتالوج بالعربية</a>}
+                    {en && <a onClick={(e) => e.stopPropagation()} href={en} target="_blank" rel="noreferrer" className="flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs"><Download className="h-3.5 w-3.5" />EN Datasheet</a>}
                   </div>
                 </div>
               </div>
@@ -307,6 +310,7 @@ function SuntechPage() {
         </div>
       </section>
 
+      {detailP && <BrandProductDetail product={detailP} accent="#e60012" onClose={() => setDetail(null)} />}
       <footer className="bg-foreground py-8 text-sm text-background/70">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5">
           <p dir="ltr">©Copyright. Wuxi Suntech Power Co., Ltd. All Rights Reserved.</p>

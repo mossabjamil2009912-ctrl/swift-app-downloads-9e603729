@@ -2,6 +2,7 @@ import { createFileRoute} from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, FileText, Headphones, Mail } from "lucide-react";
 import { PRODUCTS } from "@/lib/products-data";
+import { BrandProductDetail } from "@/components/brand-product-detail";
 import { PylontechNav } from "@/components/pylontech-nav";
 import { useResolvedVideoSrc } from "@/lib/video-source";
 import actesLogo from "@/assets/actes-logo-full.webp";
@@ -64,6 +65,8 @@ const FOOTER = [
 function PylontechPage() {
   const items = PRODUCTS.filter((p) => p.brand === "Pylontech");
   const [i, setI] = useState(0);
+  const [detail, setDetail] = useState<string | null>(null);
+  const detailP = items.find((p) => p.id === detail);
   const s = SLIDES[i] ?? SLIDES[0]!;
   const go = (d: number) => setI((x) => (x + d + SLIDES.length) % SLIDES.length);
   useEffect(() => {
@@ -118,6 +121,23 @@ function PylontechPage() {
         </div>
       </section>
 
+
+      {/* المنتجات */}
+      <section id="products" className="scroll-mt-16 py-20">
+        <div className="mx-auto max-w-7xl px-5">
+          <h2 className="text-center text-3xl font-bold sm:text-4xl">جميع المنتجات</h2>
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {items.map((p) => (
+              <button key={p.id} onClick={() => setDetail(p.id)} className="group rounded-2xl border border-border bg-card p-5 text-right transition hover:border-primary hover:shadow-lg">
+                <div className="flex h-44 items-center justify-center rounded-xl bg-muted"><img src={p.image} alt={p.name} loading="lazy" className="max-h-40 object-contain transition group-hover:scale-105" /></div>
+                <p className="mt-4 text-sm font-bold" dir="ltr" style={{ textAlign: "right" }}>{p.model.split(" ")[0]}</p>
+                <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{p.name}</p>
+                <p className="mt-2 text-sm font-bold text-primary" dir="ltr" style={{ textAlign: "right" }}>{p.power}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* الاستدامة */}
       <section className="bg-background py-24">
@@ -174,6 +194,7 @@ function PylontechPage() {
         </div>
       </footer>
 
+      {detailP && <BrandProductDetail product={detailP} accent="#00a5b0" onClose={() => setDetail(null)} />}
       {/* الأزرار العائمة */}
       <div className="fixed left-4 top-1/2 z-30 flex -translate-y-1/2 flex-col gap-3">
         {[{ I: FileText, h: "#solutions", l: "الكتالوجات" }, { I: Headphones, h: "#contact", l: "الدعم" }, { I: Mail, h: "#contact", l: "استفسار" }].map(({ I, h, l }) => (
