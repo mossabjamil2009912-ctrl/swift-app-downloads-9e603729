@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ArrowRight, BatteryCharging, Cpu, FileText, Gauge, ShieldCheck, Sun, Wifi } from "lucide-react";
 import actesLogo from "@/assets/actes-logo-full.webp";
 import { PRODUCTS, type Product } from "@/lib/products-data";
+import { BrandProductDetail } from "@/components/brand-product-detail";
 
 export const Route = createFileRoute("/lipower")({
   head: () => ({
@@ -29,6 +30,7 @@ const HIGHLIGHTS = [
 
 function LiPowerPage() {
   const items = PRODUCTS.filter((p) => p.brand === "Li-Power");
+  const [sel, setSel] = useState<Product | null>(null);
   return (
     <main dir="rtl" className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-10 border-b border-border bg-card/90 backdrop-blur">
@@ -68,18 +70,19 @@ function LiPowerPage() {
       <section id="products" className="mx-auto max-w-6xl scroll-mt-20 px-4 pb-16">
         <h2 className="mb-8 text-center text-2xl font-bold sm:text-3xl">منتجاتنا</h2>
         <div className="space-y-8">
-          {items.map((p) => <ProductBlock key={p.id} p={p} />)}
+          {items.map((p) => <ProductBlock key={p.id} p={p} onOpen={() => setSel(p)} />)}
         </div>
       </section>
 
       <footer className="border-t border-border bg-card py-8 text-center text-sm text-muted-foreground">
         Li-Power — متوفر لدى ACTES لحلول أنظمة الطاقة
       </footer>
+      {sel && <BrandProductDetail product={sel} accent="#f39200" gallery={["/media/items/lipower-1.6kw-12v.jpg","/media/items/lipower-6.2kw-48v.jpg"]} onClose={() => setSel(null)} />}
     </main>
   );
 }
 
-function ProductBlock({ p }: { p: Product }) {
+function ProductBlock({ p, onOpen }: { p: Product; onOpen: () => void }) {
   const [open, setOpen] = useState(false);
   return (
     <article className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
@@ -98,6 +101,7 @@ function ProductBlock({ p }: { p: Product }) {
             ))}
           </ul>
           <div className="mt-5 flex flex-wrap gap-2">
+            <button onClick={onOpen} className="rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background hover:opacity-90">تفاصيل المنتج</button>
             <button onClick={() => setOpen((v) => !v)} className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90">
               {open ? "إخفاء المواصفات" : "المواصفات الفنية"}
             </button>
