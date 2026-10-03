@@ -172,39 +172,39 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system }:
 
   return (
     <div className="space-y-5">
-      <div ref={ref} className="space-y-5">
-        {/* الترويسة وملخص الاستثمار */}
-        <section className="overflow-hidden rounded-xl bg-navy text-primary-foreground">
-          <div className="p-5 sm:p-7">
-            <div className="flex items-center justify-between gap-3 text-[11px] font-bold opacity-80"><span>دراسة جدوى تنفيذية • إصدار {new Date().getFullYear()}</span><span dir="ltr">ACTES ENERGY SYSTEMS & SOLUTIONS</span></div>
-            <h2 className="mt-4 text-2xl font-black leading-tight sm:text-3xl">منظومة الطاقة الشمسية والتخزين{d.custom ? " — منظومة العميل" : ""}</h2>
-            <p className="mt-1 text-xs opacity-80">دراسة فنية ومالية تنفيذية مقدمة من ACTES</p>
-            <div className="mt-5 rounded-lg bg-primary-foreground/10 p-4">
-              <p className="text-xs font-black">ملخص الاستثمار</p>
-              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-4">
-                <div><p className="text-[11px] opacity-75">الاستثمار المطلوب</p><p className="text-xl font-black tabular-nums">${nf(d.capex)}</p></div>
-                <div><p className="text-[11px] opacity-75">التوفير في 5 سنوات</p><p className="text-xl font-black tabular-nums">${nf(e.sav5)}</p></div>
-                <div><p className="text-[11px] opacity-75">صافي القيمة المتحققة</p><p className="text-xl font-black tabular-nums">${nf(e.net5)}</p></div>
-                <div className="self-center"><span className="inline-block rounded-full bg-energy px-3 py-1.5 text-xs font-black text-energy-foreground">خفض فاتورة الديزل بنسبة {nf(e.cut, 1)}%</span></div>
-              </div>
+      <div ref={ref} className="space-y-5" style={{ color: R.ink }}>
+        <Page n={1}>
+          <div className="grid items-start gap-6 lg:grid-cols-[1fr_380px]">
+            <div>
+              <h2 className="text-3xl font-black leading-tight sm:text-5xl" style={{ color: R.ink }}>منظومة الطاقة الشمسية والتخزين</h2>
+              <p className="mt-2 text-3xl font-black leading-tight sm:text-5xl" style={{ color: R.red }}>{d.custom ? "منظومة العميل" : "المنظومة المقترحة"}</p>
+              <p className="mt-4 text-sm" style={{ color: R.sub }}>دراسة فنية ومالية تنفيذية مقدمة من ACTES • إصدار {new Date().getFullYear()}</p>
+            </div>
+            <div className="rounded-xl border bg-white p-5 shadow-md" style={{ borderColor: R.line, borderTop: `5px solid ${R.red}` }}>
+              <p className="text-[12px] font-black" style={{ color: "#4b5563" }}>ملخص الاستثمار</p>
+              {[["الاستثمار المطلوب", d.capex], ["التوفير في 5 سنوات", e.sav5], ["صافي القيمة المتحققة", e.net5]].map(([l, v]) => (
+                <div key={l as string} className="flex items-center justify-between border-b py-3.5" style={{ borderColor: R.line }}><span className="text-sm" style={{ color: "#4b5563" }}>{l}</span><b className="text-xl tabular-nums">${nf(v as number)}</b></div>
+              ))}
+              <p className="mt-4 rounded-md py-3 text-center text-sm font-black" style={{ background: R.mint, color: R.green }}>خفض فاتورة الديزل الحالية بنسبة {nf(e.cut, 1)}%</p>
             </div>
           </div>
-        </section>
 
-        <Sec n="01" kicker="لوحة المؤشرات" title="الأثر التنفيذي" note="المؤشرات الأساسية للمنظومة المقترحة، محسوبة على أساس التشغيل السنوي الكامل.">
+        <Sec n="01" kicker="لوحة المؤشرات" title="الأثر التنفيذي" note="المؤشرات الأساسية للمنظومة، محسوبة على أساس التشغيل السنوي الكامل.">
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-5">
-            <Kpi t="إجمالي القدرة الشمسية" v={`${nf(d.kwp, 2)} kWp`} s={d.panelLabel} />
+            <Kpi hot t="إجمالي القدرة الشمسية" v={`${nf(d.kwp, 2)} kWp`} s={d.panelLabel} />
             <Kpi t="سعة التخزين المركبة" v={`${nf(d.batKwh)} kWh`} s={d.batLabel} />
             <Kpi t="التغطية النظيفة" v={`${nf(d.clean)} %`} s={`من حمل يومي ${nf(d.total)} kWh`} />
-            <Kpi t="إيقاف المولد" v={`${offH} ساعة/يوم`} s={`${nf(offH * 365)} ساعة سنوياً`} />
+            <Kpi hot t="إيقاف المولد" v={`${offH} ساعة/يوم`} s={`${nf(offH * 365)} ساعة سنوياً`} />
             <Kpi t="توفير الديزل" v={`${nf(e.savedL * 365)} لتر/سنة`} s={`≈ ${nf(e.savedL)} لتر/يوم`} />
-            <Kpi t="التوفير المالي السنوي" v={`${nf(e.saving)} $`} s={`عند ${nf(price0, 3)} $/L`} />
+            <Kpi hot t="التوفير المالي السنوي" v={`${nf(e.saving)} $`} s={`عند ${nf(price0, 3)} $/L`} />
             <Kpi t="التكلفة الاستثمارية" v={`${nf(d.capex)} $`} s="CAPEX" />
             <Kpi t="فترة الاسترداد" v={fmtM(e.months)} s={e.months ? `≈ ${nf(e.months / 12, 2)} سنة` : undefined} />
             <Kpi t="صافي التوفير خلال 5 سنوات" v={`${nf(e.net5)} $`} s="توفير تراكمي" />
             <Kpi t="خفض انبعاثات الكربون" v={`${nf(e.co2)} طن CO₂/سنة`} s="أثر بيئي مباشر" />
           </div>
         </Sec>
+        </Page>
+        <Page n={2}>
 
         <Sec n="02" kicker="حاسبة السيناريوهات" title="اختبر جدوى الاستثمار لحظياً" note="عدّل سعر الديزل أو حجم الحمل لمشاهدة أثر السيناريو مباشرة على النتائج المالية.">
           <div className="grid gap-4 sm:grid-cols-2">
