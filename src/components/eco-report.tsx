@@ -249,7 +249,8 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system }:
             </table>
           </div>
         </Sec>
-
+        </Page>
+        <Page n={3}>
         <Sec n="04" kicker="برنامج التشغيل" title="الفترات التشغيلية اليومية" note={`توزيع مصادر التغذية على مدار اليوم: ${d.sunH} ساعات شمس مباشرة، ${d.batH} ساعات بطاريات، ${d.genHours} ساعات مولد.`}>
           <table className="w-full text-xs">
             <thead><tr className="bg-navy text-primary-foreground"><th className="p-2 text-right">الفترة</th><th className="p-2 text-right">مصادر التغذية / النشاط</th><th className="p-2 text-right">حالة المولد</th></tr></thead>
@@ -285,7 +286,8 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system }:
             </div>
           </div>
         </Sec>
-
+        </Page>
+        <Page n={4}>
         <Sec n="06" kicker="تغطية الأحمال" title="تغطية الحمل على مدار 24 ساعة" note={`طاقة نظيفة ${nf(d.clean)}% • المولد ${d.genHours} ساعة/يوم`}>
           <Frame max={kMax} unit="">
             <path d={area(a3, a2)} fill={C.gen} opacity={0.75} />
@@ -313,9 +315,10 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system }:
             </div>
           </div>
         </Sec>
-
-        <Sec n="07" kicker="أداء البطاريات والإنتاج" title="حالة الشحن والفائض الشمسي" note="منحنى شحن وتفريغ البطاريات خلال 24 ساعة، ومطابقة الإنتاج الشمسي مع الحمل والفائض المتاح للشحن.">
-          <div className="grid gap-5 lg:grid-cols-2">
+        </Page>
+        <Page n={5}>
+        <Sec n="07" kicker="أداء البطاريات" title="حالة شحن البطاريات" note="منحنى شحن وتفريغ البطاريات خلال 24 ساعة.">
+          <div>
             <div>
               <p className="text-xs font-black">حالة شحن البطاريات — 24 ساعة</p>
               <p className="text-[10px] text-muted-foreground">الحد الأدنى الآمن 10% وفق عمق تفريغ 90% • السعة القابلة للاستخدام {nf(d.batKwh * DOD)} kWh</p>
@@ -328,19 +331,27 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system }:
                 <text x={W - P.r - 4} y={ys(10) - 4} fontSize="9" textAnchor="end" fill={C.gen}>10%</text>
               </svg>
             </div>
-            <div>
-              <p className="text-xs font-black">الإنتاج الشمسي مقابل الحمل</p>
-              <p className="text-[10px] text-muted-foreground">المساحة الخضراء تمثل الفائض الشمسي المستخدم في شحن البطاريات • ذروة الإنتاج {nf(Math.max(...d.hours.map((x) => x.pv)))} / ذروة الحمل {nf(d.peak)} kW</p>
+          </div>
+        </Sec>
+        </Page>
+        <Page n={6}>
+        <Sec n="08" kicker="الإنتاج الشمسي" title="الإنتاج الشمسي مقابل الحمل">
+          <div>
+              <p className="text-[11px] text-muted-foreground">المساحة الخضراء تمثل الفائض الشمسي المستخدم في شحن البطاريات • ذروة الإنتاج {nf(Math.max(...d.hours.map((x) => x.pv)))} / ذروة الحمل {nf(d.peak)} kW</p>
               <Frame max={kMax} unit="">
                 <path d={area(d.hours.map((x) => x.pv), d.hours.map((x) => Math.min(x.pv, x.load)))} fill={C.bat} opacity={0.35} />
                 <path d={step(d.hours.map((x) => x.pv))} fill="none" stroke={C.sun} strokeWidth={2} />
                 <path d={step(d.hours.map((x) => x.load))} fill="none" stroke={C.load} strokeWidth={2} />
               </Frame>
               <Legend items={[[C.sun, "الإنتاج الشمسي"], [C.load, "حمل المنشأة"], [C.bat, "فائض للشحن"]]} />
-            </div>
           </div>
         </Sec>
-        <p className="text-center text-[11px] text-muted-foreground">ACTES Energy Systems & Solutions • الأرقام تقديرية: {PSH} ساعات ذروة شمسية، {KWH_PER_L} kWh لكل لتر ديزل، وأسعار معدات متوسطة.</p>
+        <p className="text-center text-[11px]" style={{ color: R.sub }}>الأرقام تقديرية: {PSH} ساعات ذروة شمسية، {KWH_PER_L} kWh لكل لتر ديزل.</p>
+        </Page>
+        <footer className="flex flex-wrap items-center justify-between gap-3 rounded-xl px-5 py-5" style={{ background: R.ink }}>
+          <div className="flex items-center gap-3"><span className="rounded bg-white px-2 py-1"><img src={LOGO} alt="ACTES" className="h-8 w-auto" /></span><b dir="ltr" className="text-sm" style={{ color: "#fff" }}>ACTES Energy Systems & Solutions</b></div>
+          <span className="text-[12px]" style={{ color: "#9ca3af" }}>من إعداد شركة أكتس لأنظمة الطاقة وحلولها</span>
+        </footer>
       </div>
 
       <div className="flex flex-wrap gap-2" data-noprint>
