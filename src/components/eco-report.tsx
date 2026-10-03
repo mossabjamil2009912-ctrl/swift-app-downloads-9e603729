@@ -13,22 +13,27 @@ type Hour = { h: number; load: number; pv: number; direct: number; batOut: numbe
 
 export type CustomSystem = { panelName: string; panelW: number; panels: number; invName: string; invKw: number; invN: number; batName: string; batUnit: number; batN: number; capex: number };
 
-function design(kw: number[], sys?: CustomSystem) {
+function design(kw: number[], sys?: CustomSystem, target?: number) {
   const total = kw.reduce((s, v) => s + v, 0);
   const peak = Math.max(...kw, 0);
   const day = kw.reduce((s, v, h) => s + (h >= 7 && h < 17 ? v : 0), 0);
-  const evening = kw.reduce((s, v, h) => s + (h >= 17 && h < 22 ? v : 0), 0) + (kw[6] ?? 0);
-  const mods = sys ? sys.batN : Math.max(evening > 0 ? 1 : 0, Math.ceil(evening / DOD / BAT_MOD));
-  const batKwh = sys ? sys.batN * sys.batUnit : mods * BAT_MOD;
+  const evening0 = kw.reduce((s, v, h) => s + (h >= 17 && h < 22 ? v : 0), 0) + (kw[6] ?? 0);
+  // عند تحديد نسبة تغطية مستهدفة: النهار أولاً ثم البطاريات لباقي النسبة
+  const want = target !== undefined ? total * target : undefined;
+  const pvDay = want !== undefined ? Math.min(day, want) : day;
+  const evening = want !== undefined ? Math.max(0, want - day) * (target! >= 0.99 ? 1.12 : 1.05) : evening0;
+  const smallBat = peak <= 16 ? 5.12 : BAT_MOD;
+  const mods = sys ? sys.batN : Math.max(evening > 0 ? 1 : 0, Math.ceil(evening / DOD / smallBat));
+  const batKwh = sys ? sys.batN * sys.batUnit : mods * smallBat;
   const racks = Math.ceil(mods / RACK);
-  const panels = sys ? sys.panels : Math.ceil(((day + evening / 0.95) / (PSH * PR)) * 1000 / PANEL_W);
+  const panels = sys ? sys.panels : Math.max(1, Math.ceil(((pvDay * (want !== undefined ? 1.08 : 1) + evening / 0.95) / (PSH * PR)) * 1000 / PANEL_W));
   const kwp = (panels * (sys ? sys.panelW : PANEL_W)) / 1000;
   const unit = sys ? sys.invKw : peak > 100 ? 125 : peak > 20 ? 50 : peak > 12 ? 20 : peak > 8 ? 12 : 8;
   const invN = sys ? sys.invN : Math.max(1, Math.ceil((peak * 1.25) / unit));
   const invBrand = sys ? sys.invName : unit >= 125 ? "Solis" : "Deye";
   const pvKw = sys ? Math.min(kwp, unit * invN * 1.3) : kwp;
   const panelLabel = sys ? `${panels} لوح ${sys.panelName} ${sys.panelW}W` : `${panels} لوح سنتك ${PANEL_W}W`;
-  const batLabel = sys ? (batKwh > 0 ? `${mods} بطارية ${sys.batName} ${sys.batUnit}kWh` : "بدون بطاريات") : `${racks} راك × ${mods} بطارية ${BAT_MOD}kWh`;
+  const batLabel = sys ? (batKwh > 0 ? `${mods} بطارية ${sys.batName} ${sys.batUnit}kWh` : "بدون بطاريات") : mods === 0 ? "بدون بطاريات" : peak <= 16 ? `${mods} بطارية Pylontech ${smallBat}kWh` : `${racks} راك × ${mods} بطارية ${BAT_MOD}kWh`;
   // منحنى الإنتاج الشمسي (جيبي من 6 إلى 18)
   const shape = Array.from({ length: 24 }, (_, h) => (h >= 6 && h < 18 ? Math.sin((Math.PI * (h + 0.5 - 6)) / 12) : 0));
   const sSum = shape.reduce((a, b) => a + b, 0);
@@ -106,7 +111,7 @@ const Page = ({ n, children }: { n: number; children: React.ReactNode }) => (
   <div className="report-page overflow-hidden rounded-xl border shadow-sm" style={{ background: R.paper, borderColor: R.line, breakAfter: n < 6 ? "page" : "auto" }}>
     <div className="flex items-center justify-between gap-3 border-b bg-white px-4 py-3 sm:px-6" style={{ borderColor: R.line }}>
       <div className="flex items-center gap-3"><img src={LOGO} alt="ACTES" className="h-9 w-auto object-contain" /><span dir="ltr" className="hidden text-[11px] font-black tracking-wide sm:inline" style={{ color: "#4b5563" }}>ENERGY SYSTEMS & SOLUTIONS</span></div>
-      <span className="rounded-md border bg-white px-3 py-1.5 text-[11px]" style={{ borderColor: R.line, color: "#4b5563" }}><i className="me-1.5 inline-block size-2 rounded-full" style={{ background: R.green }} />دراسة جدوى تنفيذية • صفحة {n} من 6</span>
+      <span className="rounded-md border bg-white px-3 py-1.5 text-[11px]" style={{ borderColor: R.line, color: "#4b5563" }}><i className="me-1.5 inline-block size-2 rounded-full" style={{ background: R.green }} />دراسة جدوى تنفيذية • صفحة {n} من 5</span>
     </div>
     <div className="space-y-5 p-4 sm:p-5">{children}</div>
   </div>
