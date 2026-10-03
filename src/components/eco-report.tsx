@@ -88,20 +88,36 @@ function schedule(hours: Hour[]) {
   return segs.map((s) => ({ range: `${hh(s.from)} – ${hh(s.to)}`, src: text[s.k]![0], gen: s.k === "gen" ? `${s.to - s.from} ساعات تشغيل` : text[s.k]![1], k: s.k }));
 }
 
+const R = { red: "#e60012", ink: "#14171c", sub: "#6b7280", line: "#e5e7eb", paper: "#f7f8fa", mint: "#e8f5ee", green: "#15803d" };
+const LOGO = "/brand/actes-logo-report.png";
+
 const Sec = ({ n, kicker, title, note, children }: { n: string; kicker: string; title: string; note?: string; children: React.ReactNode }) => (
-  <section className="rounded-xl border border-border bg-card p-4 sm:p-6 break-inside-avoid">
-    <p className="text-[11px] font-black tracking-wide text-brand">{n} — {kicker}</p>
-    <h3 className="mt-1 text-lg font-black text-navy">{title}</h3>
-    {note && <p className="mt-1 text-xs text-muted-foreground">{note}</p>}
-    <div className="mt-4">{children}</div>
+  <section className="break-inside-avoid">
+    <p className="text-[12px] font-black" style={{ color: R.red }}>{n} — {kicker}</p>
+    <div className="mt-1 flex flex-wrap items-end justify-between gap-2">
+      <h3 className="text-2xl font-black" style={{ color: R.ink }}>{title}</h3>
+      {note && <p className="max-w-md text-[12px]" style={{ color: R.sub }}>{note}</p>}
+    </div>
+    <div className="mt-4 rounded-xl border bg-white p-4 sm:p-6" style={{ borderColor: R.line, borderTop: `5px solid ${R.red}` }}>{children}</div>
   </section>
 );
 
-const Kpi = ({ t, v, s }: { t: string; v: string; s?: string | undefined }) => (
-  <div className="rounded-lg border border-border bg-background p-3">
-    <p className="text-[11px] font-bold text-muted-foreground">{t}</p>
-    <p className="mt-1 text-lg font-black tabular-nums text-navy">{v}</p>
-    {s && <p className="mt-0.5 text-[10px] text-muted-foreground">{s}</p>}
+const Page = ({ n, children }: { n: number; children: React.ReactNode }) => (
+  <div className="report-page overflow-hidden rounded-xl border shadow-sm" style={{ background: R.paper, borderColor: R.line, breakAfter: n < 6 ? "page" : "auto" }}>
+    <div className="flex items-center justify-between gap-3 border-b bg-white px-4 py-3 sm:px-6" style={{ borderColor: R.line }}>
+      <div className="flex items-center gap-3"><img src={LOGO} alt="ACTES" className="h-9 w-auto object-contain" /><span dir="ltr" className="hidden text-[11px] font-black tracking-wide sm:inline" style={{ color: "#4b5563" }}>ENERGY SYSTEMS & SOLUTIONS</span></div>
+      <span className="rounded-md border bg-white px-3 py-1.5 text-[11px]" style={{ borderColor: R.line, color: "#4b5563" }}><i className="me-1.5 inline-block size-2 rounded-full" style={{ background: R.green }} />دراسة جدوى تنفيذية • صفحة {n} من 6</span>
+    </div>
+    <div className="space-y-8 p-4 sm:p-7">{children}</div>
+  </div>
+);
+
+const Kpi = ({ t, v, s, hot }: { t: string; v: string; s?: string | undefined; hot?: boolean }) => (
+  <div className="rounded-lg border bg-white p-3.5" style={{ borderColor: hot ? "#f5a3a8" : R.line }}>
+    <i className="inline-block size-2 rounded-full" style={{ background: R.green }} />
+    <p className="mt-2 text-[12px] font-bold" style={{ color: "#374151" }}>{t}</p>
+    <p className="mt-1 text-xl font-black tabular-nums" style={{ color: R.ink }}>{v}</p>
+    {s && <p className="mt-1 text-[11px]" style={{ color: R.sub }}>{s}</p>}
   </div>
 );
 
