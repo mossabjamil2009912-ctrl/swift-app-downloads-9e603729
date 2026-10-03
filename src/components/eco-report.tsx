@@ -7,7 +7,7 @@ const PV_USD_KWP = 450, BAT_USD_KWH = 300, INV_USD_KW = 150;
 const BAT_MOD = 16, RACK = 15, PANEL_W = 720;
 const nf = (n: number, d = 0) => n.toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: d });
 const hh = (h: number) => `${String(h % 24).padStart(2, "0")}:00`;
-const C = { sun: "#f5a01e", bat: "#15803d", gen: "#c0392b", load: "#1c3f94", grid: "#d5dae4" };
+const C = { sun: "#f5a01e", bat: "#15803d", gen: "#7f1d1d", load: "#e60012", grid: "#d5dae4" };
 
 type Hour = { h: number; load: number; pv: number; direct: number; batOut: number; charge: number; gen: number; soc: number };
 
@@ -165,7 +165,7 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system }:
     const node = ref.current; if (!node) return;
     const w = window.open("", "_blank"); if (!w) return;
     const css = Array.from(document.querySelectorAll('link[rel="stylesheet"], style')).map((n) => n.outerHTML).join("");
-    w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>دراسة الجدوى الاقتصادية — ACTES</title><base href="${location.origin}/">${css}<style>@page{size:A4;margin:10mm}body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}[data-noprint]{display:none!important}</style></head><body><div style="max-width:900px;margin:auto">${node.innerHTML}</div></body></html>`);
+    w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>دراسة الجدوى الاقتصادية — ACTES</title><base href="${location.origin}/">${css}<style>@page{size:A4;margin:10mm}body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}[data-noprint]{display:none!important}.report-page{break-after:page;box-shadow:none!important}</style></head><body><div style="max-width:900px;margin:auto">${node.innerHTML}</div></body></html>`);
     w.document.close();
     setTimeout(() => { w.focus(); w.print(); }, 700);
   };
