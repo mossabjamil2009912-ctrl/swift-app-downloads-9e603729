@@ -1,7 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, FileText } from "lucide-react";
 import { EcoReport, type CustomSystem } from "./eco-report";
+
+/** يعيد التمرير إلى رأس الشاشة عند الانتقال بين خطوات الدراسة. */
+function toTop() {
+  if (typeof window === "undefined") return;
+  window.scrollTo({ top: 0 });
+  document.querySelectorAll<HTMLElement>("main").forEach((m) => { m.scrollTop = 0; });
+}
 
 // دراسة الجدوى الاقتصادية: 24 خانة (ديزل لتر/ساعة أو أحمال kW) ثم 3 سيناريوهات للمنظومة
 type Mode = "diesel" | "loads";
@@ -64,6 +71,7 @@ export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?:
   const [values, setValues] = useState<string[]>(() => Array(24).fill(""));
   const [price, setPrice] = useState("1.1");
   const [done, setDone] = useState(false);
+  useEffect(() => { toTop(); }, [done]);
   const [same, setSame] = useState(false);
   const filled = values.filter((v) => v.trim() !== "" && !isNaN(Number(v))).length;
   const unit = mode === "diesel" ? "لتر/ساعة" : "kW";
@@ -175,6 +183,7 @@ export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?:
 export function EcoSystemStudy({ onSales }: { onSales?: () => void }) {
   const [f, setF] = useState({ panel: "", panelW: "", panelN: "", inv: "", invKw: "", invN: "", bat: "", batKwh: "", batN: "", cost: "", price: "1.1" });
   const [done, setDone] = useState(false);
+  useEffect(() => { toTop(); }, [done]);
   const [lm, setLm] = useState<"none" | "loads" | "diesel">("none");
   const [hrs, setHrs] = useState<string[]>(() => Array(24).fill(""));
   const [total, setTotal] = useState("");
@@ -314,24 +323,8 @@ export function EcoSystemStudy({ onSales }: { onSales?: () => void }) {
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={() => setShowReport(true)} className="inline-flex items-center gap-2 rounded-md bg-navy px-5 py-2.5 text-xs font-black text-primary-foreground"><FileText className="size-4" /> فتح تقرير الدراسة الاقتصادية</button>
         <button type="button" onClick={() => setDone(false)} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تعديل البيانات</button>
-        <button type="button" onClick={() => setShowReport(true)} className="inline-flex items-center gap-2 rounded-md bg-navy px-5 py-2.5 text-xs font-black text-primary-foreground"><FileText className="size-4" /> فتح تقرير الدراسة الاقتصادية</button>
         {onSales && <button type="button" onClick={onSales} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تواصل مع فريق أكتس</button>}
       </div>
-      {showReport && typeof document !== "undefined" && createPortal(
-        <div className="fixed inset-0 z-[100] flex flex-col bg-navy/80 p-2 backdrop-blur-sm sm:p-4" role="dialog" aria-modal="true">
-          <div className="mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
-            <div className="flex items-center gap-2 border-b border-border px-3 py-2">
-              <FileText className="size-4 shrink-0 text-brand" />
-              <span className="flex-1 truncate text-xs font-black text-navy lg:text-sm">تقرير دراسة الجدوى الاقتصادية — ACTES</span>
-              <button type="button" onClick={() => setShowReport(false)} aria-label="إغلاق" className="grid size-7 place-items-center rounded-full bg-muted text-navy transition hover:bg-border"><X className="size-4" /></button>
-            </div>
-            <div className="flex-1 overflow-auto bg-muted p-2 sm:p-4">
-              <EcoReport kw={reportKw} price={dp} system={sys} onEdit={() => { setShowReport(false); setDone(false); }} onSales={onSales} />
-            </div>
-          </div>
-        </div>,
-        document.body,
-      )}
       {showReport && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-[100] flex flex-col bg-navy/80 p-2 backdrop-blur-sm sm:p-4" role="dialog" aria-modal="true">
           <div className="mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">

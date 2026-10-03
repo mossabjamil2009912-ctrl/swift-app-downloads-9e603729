@@ -820,7 +820,7 @@ function ActesApp() {
             <ProductsCatalog
               productId={catalog.productId}
               onOpen={(id) => { setCatalog({ productId: id, fromQuote: catalog.fromQuote }); mainRef.current?.scrollTo({ top: 0 }); }}
-              onBack={() => setCatalog(null)}
+              onBack={() => { setCatalog(null); mainRef.current?.scrollTo({ top: 0 }); }}
               returnTo={catalog.fromQuote ? { label: "العودة", onReturn: () => { setCatalog(null); mainRef.current?.scrollTo({ top: 0 }); } } : null}
             />
           ) : view && isHome ? (
@@ -1605,6 +1605,7 @@ function QuoteWorkspace({ view, session, step, draft, setDraft, onPick, onBack, 
   const ecoScreen = showEco && studyView ? studyView : null;
   const studyScreen = !ecoScreen && studyFresh && showStudyOnly && studyView;
   const sldScreen = Boolean(sldParams) && showSldOnly && !studyScreen && !ecoScreen;
+  useEffect(() => { window.scrollTo({ top: 0 }); document.querySelectorAll<HTMLElement>("main").forEach((m) => { m.scrollTop = 0; }); }, [Boolean(ecoScreen), Boolean(studyScreen), sldScreen]);
 
   const hasOutputs = Boolean(view.quote || view.study || view.sld || view.specs.length);
 
