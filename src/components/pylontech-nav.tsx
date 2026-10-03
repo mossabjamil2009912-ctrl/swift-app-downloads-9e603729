@@ -3,18 +3,13 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, ChevronDown, Download, Globe, Menu, Search, ShieldCheck, X } from "lucide-react";
 import type { Product } from "@/lib/products-data";
 import { officialCatalogUrl } from "@/lib/official-catalogs";
+import { PYLON_SOLUTIONS } from "@/lib/pylontech-solutions";
 import actesLogo from "@/assets/actes-logo-full.webp";
 
 type Simple = { t: string; d?: string; h: string };
 type Menu = { id: string; label: string; items: Simple[]; actes: Simple };
 
-const SOLUTIONS: Simple[] = [
-  { t: "أنظمة ESS السكنية", d: "Residential ESS", h: "#solutions" },
-  { t: "بطاريات BESS السكنية", d: "Residential BESS", h: "#solutions" },
-  { t: "أنظمة ESS للمرافق وC&I", d: "Utility, C&I ESS", h: "#solutions" },
-  { t: "أنظمة ESS خارج الشبكة", d: "Off-Grid ESS", h: "#solutions" },
-  { t: "منصة Pylontech Cloud", d: "المراقبة السحابية", h: "#solutions" },
-];
+const SOLUTIONS: Simple[] = PYLON_SOLUTIONS.map((x) => ({ t: x.t, d: x.en, h: `#sol-${x.id}` }));
 
 
 const MENUS: Menu[] = [
@@ -87,7 +82,7 @@ export function PylontechNav({ products }: { products: Product[] }) {
           <img src={actesLogo} alt="ACTES" className="h-9 w-auto" />
         </div>
         <nav className="hidden h-full items-stretch gap-7 text-[15px] lg:flex">
-          {[{ id: "solutions", label: "المنتجات والحلول", items: [...SOLUTIONS, { t: "جميع المنتجات", h: "#products" }] }, ...MENUS].map((m) => (
+          {[{ id: "solutions", label: "المنتجات والحلول", items: [...SOLUTIONS, { t: "جميع منتجات أكتس", h: "#products" }] }, ...MENUS].map((m) => (
             <div key={m.id} className="relative flex" onMouseEnter={() => setOpen(m.id)}>
               <button onClick={() => setOpen(open === m.id ? null : m.id)}
                 className={`flex items-center gap-1 border-b-2 ${open === m.id ? "border-primary text-primary" : "border-transparent hover:text-primary"}`}>

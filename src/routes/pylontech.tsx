@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, FileText, Headphones, Mail } from "lucide-react";
 import { PRODUCTS } from "@/lib/products-data";
 import { BrandProductDetail } from "@/components/brand-product-detail";
+import { PYLON_SOLUTIONS } from "@/lib/pylontech-solutions";
+import { PylontechSolution } from "@/components/pylontech-solution";
 import { PylontechNav } from "@/components/pylontech-nav";
 import { useResolvedVideoSrc } from "@/lib/video-source";
 import actesLogo from "@/assets/actes-logo-full.webp";
@@ -29,11 +31,7 @@ const SLIDES = [
   { id: "pylontech-optimus-l260-hy", video: "", poster: "/media/pylontech/hero-h3x.jpg", k: "All-in-One", t: "طاقة أذكى، توفير أكبر", d: "منظومة تخزين متكاملة الكل في واحد تُحدث ثورة في تجربة التخزين" },
 ];
 
-const SOLUTIONS = [
-  { t: "Residential ESS", s: "التخزين المنزلي المتكامل", img: "/media/pylontech/sol-ress.jpg" },
-  { t: "Residential BESS", s: "منظومات البطاريات المنزلية", img: "/media/pylontech/sol-rbess.jpg" },
-  { t: "Utility, C&I ESS", s: "تخزين المرافق والقطاع التجاري والصناعي", img: "/media/pylontech/sol-ci.jpg" },
-];
+
 
 
 const ESG = [
@@ -55,7 +53,7 @@ const CASES = [
 ];
 
 const FOOTER = [
-  { t: "المنتجات والحلول", l: ["Residential ESS", "Residential BESS", "Utility, C&I ESS", "Pylontech Cloud", "تخزين الشرفات Plug-In", "محطة طاقة محمولة", "تخزين خارج الشبكة"] },
+  { t: "المنتجات والحلول", l: ["التخزين السكني", "التخزين التجاري والصناعي", "الجهد العالي والمشاريع الكبرى", "الأنظمة المستقلة والمتنقلة"] },
   { t: "الخدمة والدعم", l: ["كن شريكاً لنا", "مركز الخدمة", "تسجيل البطارية", "التحميلات"] },
   { t: "من نحن", l: ["نبذة عن الشركة", "ثقافة الشركة", "البحث والتطوير", "التصنيع", "الاستدامة"] },
   { t: "المركز الإعلامي", l: ["الأخبار", "المعارض", "الندوات الإلكترونية", "أخبار Voltdeer"] },
@@ -67,6 +65,13 @@ function PylontechPage() {
   const [i, setI] = useState(0);
   const [detail, setDetail] = useState<string | null>(null);
   const detailP = items.find((p) => p.id === detail);
+  const [sol, setSol] = useState<string | null>(null);
+  const solP = PYLON_SOLUTIONS.find((x) => x.id === sol);
+  useEffect(() => {
+    const onHash = () => { const m = location.hash.match(/^#sol-(\w+)/); if (m) { setSol(m[1]!); history.replaceState(null, "", "#solutions"); } };
+    onHash(); window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
   const s = SLIDES[i] ?? SLIDES[0]!;
   const go = (d: number) => setI((x) => (x + d + SLIDES.length) % SLIDES.length);
   useEffect(() => {
@@ -106,16 +111,17 @@ function PylontechPage() {
       <section id="solutions" className="scroll-mt-16 bg-muted/50 py-20">
         <div className="mx-auto max-w-7xl px-5">
           <h2 className="text-center text-3xl font-bold sm:text-4xl">المنتجات والحلول</h2>
-          <div className="mt-12 grid gap-5 md:grid-cols-3">
-            {SOLUTIONS.map((x) => (
-              <a key={x.t} href="#solutions" className="group relative block h-[420px] overflow-hidden rounded-2xl">
-                <img src={x.img} alt={x.s} loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+          <p className="mx-auto mt-3 max-w-2xl text-center text-sm text-muted-foreground">حلول بايلونتك المتوفرة لدى أكتس — اضغط على أي حل لعرض منتجاته والتكامل الهندسي والكتالوجات</p>
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {PYLON_SOLUTIONS.map((x) => (
+              <button key={x.id} onClick={() => setSol(x.id)} className="group relative block h-[340px] overflow-hidden rounded-2xl text-right">
+                <img src={x.img} alt={x.t} loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-transparent to-transparent" />
                 <div className="absolute bottom-6 right-6 text-background">
-                  <h3 className="text-2xl font-bold" dir="ltr">{x.t}</h3>
-                  <p className="mt-1 opacity-85">{x.s}</p>
+                  <h3 className="text-xl font-bold">{x.t}</h3>
+                  <p className="mt-1 text-sm opacity-85" dir="ltr">{x.en}</p>
                 </div>
-              </a>
+              </button>
             ))}
           </div>
         </div>
@@ -194,6 +200,7 @@ function PylontechPage() {
         </div>
       </footer>
 
+      {solP && !detailP && <PylontechSolution s={solP} products={items} onClose={() => setSol(null)} onProduct={(id) => setDetail(id)} />}
       {detailP && <BrandProductDetail product={detailP} accent="#00a5b0" onClose={() => setDetail(null)} />}
       {/* الأزرار العائمة */}
       <div className="fixed left-4 top-1/2 z-30 flex -translate-y-1/2 flex-col gap-3">
