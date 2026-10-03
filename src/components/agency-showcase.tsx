@@ -50,7 +50,7 @@ function Chart({ c }: { c: (typeof CFG)[BrandKey]["chart"] }) {
   const path = (pts: [number, number][]) => pts.map(([a, b], i) => `${i ? "L" : "M"}${x(a)},${y(b)}`).join(" ");
   const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => c.yMin + f * (c.yMax - c.yMin));
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" dir="ltr">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" direction="ltr">
       {ticks.map((t) => (
         <g key={t}><line x1={P} x2={W - P} y1={y(t)} y2={y(t)} className="stroke-border" strokeDasharray="3 4" />
           <text x={P - 6} y={y(t) + 4} textAnchor="end" className="fill-muted-foreground text-[10px]">{Math.round(t)}</text></g>
