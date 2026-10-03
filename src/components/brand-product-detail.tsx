@@ -6,7 +6,20 @@ import { officialCatalogUrl } from "@/lib/official-catalogs";
 import { useResolvedVideoSrc } from "@/lib/video-source";
 
 /** صفحة منتج كاملة داخل مواقع العلامات: فيديو المنتج الحقيقي، الصور، المزايا، المواصفات والملفات الرسمية. */
-export function BrandProductDetail({ product: p, accent, onClose, gallery }: { product: Product; accent: string; onClose: () => void; gallery?: string[] }) {
+export function BrandProductDetail({ product, accent, onClose, gallery }: { product: Product; accent: string; onClose: () => void; gallery?: string[] }) {
+  return (
+    <div dir="rtl" className="fixed inset-0 z-50 overflow-y-auto bg-background">
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/95 px-5 py-3 backdrop-blur">
+        <p className="font-bold" dir="ltr">{product.model.split(" ")[0]}</p>
+        <button onClick={onClose} aria-label="إغلاق" className="rounded-full border border-border p-2 hover:bg-muted"><X className="h-5 w-5" /></button>
+      </div>
+      <ProductBody product={product} accent={accent} gallery={gallery} />
+    </div>
+  );
+}
+
+/** محتوى صفحة المنتج كاملاً (يُعرض مباشرة داخل صفحات الحلول). */
+export function ProductBody({ product: p, accent, gallery }: { product: Product; accent: string; gallery?: string[] | undefined }) {
   const video = getProductVideo(p.baseId ?? p.id) ?? getProductVideo(p.id);
   const src = useResolvedVideoSrc(video?.src ?? "");
   const [tab, setTab] = useState(0);
@@ -14,11 +27,7 @@ export function BrandProductDetail({ product: p, accent, onClose, gallery }: { p
   const en = officialCatalogUrl(p, "en");
   const tabs = ["المزايا", "المواصفات الفنية", "التنزيلات"];
   return (
-    <div dir="rtl" className="fixed inset-0 z-50 overflow-y-auto bg-background">
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/95 px-5 py-3 backdrop-blur">
-        <p className="font-bold" dir="ltr">{p.model.split(" ")[0]}</p>
-        <button onClick={onClose} aria-label="إغلاق" className="rounded-full border border-border p-2 hover:bg-muted"><X className="h-5 w-5" /></button>
-      </div>
+    <div dir="rtl" id={`product-${p.id}`} className="scroll-mt-16 border-b-4 border-border">
       {/* الصورة الرسمية للمنتج أولاً كما في موقع الشركة */}
       <section className="bg-muted/40">
         <div className="mx-auto grid max-w-7xl items-center gap-6 px-5 py-10 md:grid-cols-2">

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Link } from "@tanstack/react-router";
+import { ProductBody } from "@/components/brand-product-detail";
 import { CheckCircle2, Download, Link2, ShieldCheck, X } from "lucide-react";
 import type { Product } from "@/lib/products-data";
 import type { PylonSolution } from "@/lib/pylontech-solutions";
@@ -45,23 +45,6 @@ export function PylontechSolution({ s, products, onClose, onProduct }: { s: Pylo
           </div>
         </section>
 
-        {/* أكتس — المنتجات المتوفرة */}
-        <section>
-          <h2 className="text-xl font-bold">منتجات الحل المتوفرة لدى أكتس</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            {list.map((p) => (
-              <button key={p.id} onClick={() => onProduct(p.id)} className="group flex gap-4 rounded-2xl border border-border bg-card p-4 text-right transition hover:border-primary hover:shadow-lg">
-                <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-muted"><img src={p.image} alt={p.name} loading="lazy" className="max-h-20 object-contain" /></div>
-                <div className="min-w-0">
-                  <p className="font-bold" dir="ltr" style={{ textAlign: "right" }}>{p.model}</p>
-                  <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{p.name}</p>
-                  <p className="mt-2 text-sm font-bold text-primary" dir="ltr" style={{ textAlign: "right" }}>{p.power}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-
         {/* أكتس — التكامل الهندسي */}
         <section className="rounded-2xl border border-primary/30 bg-primary/5 p-6">
           <h2 className="flex items-center gap-2 text-xl font-bold text-primary"><ShieldCheck className="h-5 w-5" />التكامل الهندسي من أكتس</h2>
@@ -92,10 +75,11 @@ export function PylontechSolution({ s, products, onClose, onProduct }: { s: Pylo
           </ul>
         </section>
 
-        <div className="flex flex-wrap gap-3 pb-6">
-          <Link to="/" className="rounded-full bg-primary px-6 py-3 text-sm font-bold text-primary-foreground hover:opacity-90">طلب عرض سعر للمنظومة</Link>
-          <Link to="/" className="rounded-full border border-foreground/30 px-6 py-3 text-sm font-bold hover:bg-muted">دراسة الجدوى الاقتصادية</Link>
-        </div>
+      </div>
+      {/* صفحات منتجات الحل كاملة */}
+      <div className="border-t border-border">
+        <h2 className="mx-auto max-w-7xl px-5 pt-10 text-2xl font-bold">منتجات الحل المتوفرة لدى أكتس</h2>
+        {list.map((p) => <ProductBody key={p.id} product={p} accent="#00a5b0" />)}
       </div>
     </div>,
     document.body,
