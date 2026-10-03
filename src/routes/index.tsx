@@ -2259,6 +2259,7 @@ const HOUR_LABELS = Array.from({ length: 24 }, (_, hour) => {
 // شاشة بيانات الأحمال: 24 خانة، خانة لكل ساعة في اليوم بالكيلووات
 function HourlyLoadEntry({ onSubmit }: { onSubmit: (value: string) => void }) {
   const [values, setValues] = useState<string[]>(() => Array.from({ length: 24 }, () => ""));
+  const [same, setSame] = useState(false);
   const filled = values.filter((entry) => entry.trim()).length;
 
   return (
@@ -2269,8 +2270,12 @@ function HourlyLoadEntry({ onSubmit }: { onSubmit: (value: string) => void }) {
       }}
       className="rounded-lg border border-border bg-muted/35 p-5"
     >
-      <p className="text-sm font-black">بيانات الأحمال اليومية</p>
+      <p className="text-sm font-black">بيانات الاحمال</p>
       <p className="mt-1 text-xs text-muted-foreground">اكتب الحمل المتوقع في كل ساعة من اليوم بالكيلووات (kW) — 24 خانة تغطي اليوم كاملاً</p>
+      <label className="mt-3 flex cursor-pointer items-center gap-2 text-xs font-bold">
+        <input type="checkbox" checked={same} onChange={(e) => { const on = e.target.checked; setSame(on); if (on) { const v = values.find((x) => x.trim() !== "") ?? ""; setValues(Array(24).fill(v)); } }} className="size-4 accent-primary" />
+        اعتماد نفس القيمة لكل الساعات
+      </label>
       <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
         {values.map((entry, index) => (
           <div key={index} className="grid gap-1">
@@ -2282,7 +2287,7 @@ function HourlyLoadEntry({ onSubmit }: { onSubmit: (value: string) => void }) {
                 id={`hour-${index}`}
                 autoFocus={index === 0}
                 value={entry}
-                onChange={(event) => setValues((prev) => prev.map((old, i) => (i === index ? event.target.value : old)))}
+                onChange={(event) => { const val = event.target.value; setValues((prev) => same ? Array(24).fill(val) : prev.map((old, i) => (i === index ? val : old))); }}
                 placeholder="0"
                 inputMode="decimal"
                 className="w-full rounded-md border border-input bg-card px-3 py-2.5 pe-10 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
