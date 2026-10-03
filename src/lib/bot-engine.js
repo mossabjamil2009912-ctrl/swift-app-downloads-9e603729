@@ -3654,9 +3654,9 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     if (text === 'eco_diesel' || text === '1') { step = 'eco_diesel_hours'; response = ecoHoursMsg('diesel'); }
     else if (text === 'eco_loads' || text === '2') { step = 'eco_loads_hours'; response = ecoHoursMsg('loads'); }
     else if (text === 'eco_system' || text === '3') { step = 'eco_system_hours'; response = ecoHoursMsg('system'); }
+    else { response = noOpt(ecoModeMsg()); }
   } else if (step === 'eco_system_hours') {
     response = ecoHoursMsg('system');
-    else { response = noOpt(ecoModeMsg()); }
   } else if (step === 'eco_diesel_hours' || step === 'eco_loads_hours') {
     // طلب عرض سعر من دراسة الجدوى: تُعتمد الأحمال الساعية وتُصمم منظومة هجينة ثم يصدر العرض الرسمي
     var _eq = String(text).indexOf('eco_quote') === 0 ? parseLoads(String(text).slice(9)) : null;
