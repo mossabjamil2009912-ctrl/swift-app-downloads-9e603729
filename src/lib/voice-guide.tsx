@@ -336,6 +336,8 @@ let silentNext = false;
 export function silenceNextScreen() {
   silentNext = true;
   stopSpeaking();
+  // الكتم يخص الشاشة التي نرجع إليها فقط؛ لا يتسرب إلى أي شاشة ندخلها بعدها.
+  setTimeout(() => { silentNext = false; }, 700);
 }
 
 /** يسجّل نص الشاشة بلا نطق: زر «إعادة السماع» يبقى جاهزاً لنطقه فوراً. */
@@ -343,8 +345,10 @@ export function setScreenSpeechSilently(key: string, text: string) {
   if (!text) return;
   stopSpeaking();
   setScreenSpeech(text);
-  lastScreen = key;
-  // لا نصفّر silentNext هنا: الرجوع يظل صامتاً، والنص المسجّل يعمل فقط عبر زر «إعادة السماع».
+  // الرجوع صامت مرة واحدة فقط؛ الدخول التالي لأي شاشة (حتى المنطوقة سابقاً) يُنطق.
+  silentNext = false;
+  lastScreen = "";
+  void key;
 }
 
 /** ينطق رسالة الشاشة فور ظهورها؛ التنقل السريع يلغي النطق بصمت. */
@@ -352,7 +356,7 @@ export function speakScreen(key: string, text: string) {
   if (!text) return;
   // نسجّل نص الشاشة أولاً حتى يعمل زر «إعادة السماع» على الشاشة المعروضة دائماً.
   setScreenSpeech(text);
-  if (silentNext) { silentNext = false; stopSpeaking(); lastScreen = key; return; }
+  if (silentNext) { silentNext = false; stopSpeaking(); lastScreen = ""; return; }
   if (key === lastScreen) return;
   stopSpeaking();
   lastScreen = key;
@@ -368,7 +372,7 @@ export function speakScreen(key: string, text: string) {
 export function speakScreenAfterCurrent(key: string, text: string) {
   if (!text) return;
   setScreenSpeech(text);
-  if (silentNext) { silentNext = false; stopSpeaking(); lastScreen = key; return; }
+  if (silentNext) { silentNext = false; stopSpeaking(); lastScreen = ""; return; }
   if (key === lastScreen) return;
   lastScreen = key;
   const expected = token;
