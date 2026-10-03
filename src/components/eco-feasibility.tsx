@@ -1,4 +1,4 @@
-import { ShoppingCart, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { ShoppingCart, X, FileText, Download } from "lucide-react";
 import { EcoReport, ecoSummary, type CustomSystem } from "./eco-report";
