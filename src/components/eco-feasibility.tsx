@@ -71,6 +71,7 @@ export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?:
   const [values, setValues] = useState<string[]>(() => Array(24).fill(""));
   const [price, setPrice] = useState("1.1");
   const [done, setDone] = useState(false);
+  const [report, setReport] = useState(false);
   useEffect(() => { toTop(); }, [done]);
   const [same, setSame] = useState(false);
   const filled = values.filter((v) => v.trim() !== "" && !isNaN(Number(v))).length;
@@ -115,10 +116,14 @@ export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?:
     );
   }
 
-  if (filled === 24) {
-    return <EcoReport kw={kw} price={dp} onEdit={() => setDone(false)} onSales={onSales} onBuy={onBuy ? () => onBuy(kw.map((v, h) => `${h}: ${Math.round(v * 100) / 100}`).join("\n")) : undefined} />;
+  if (report) {
+    return <EcoReport kw={kw} price={dp} onEdit={() => setReport(false)} onSales={onSales} onBuy={onBuy ? () => onBuy(kw.map((v, h) => `${h}: ${Math.round(v * 100) / 100}`).join("\n")) : undefined} />;
   }
-  void rec; void dailyL; void invPkg;
+  const peakKw = Math.max(...kw, 0);
+  const tier = peakKw <= 16 ? "سكنية" : peakKw <= 100 ? "تجارية" : "تجارية / صناعية كبرى";
+  const recInv = rec ? (rec.inv <= 16 ? `Deye ${invPkg(rec.inv)} kW${invPkg(rec.inv) > 12 ? " — 3 فاز" : " — 1 فاز"}` : rec.inv <= 100 ? `Deye 50 kW — 3 فاز × ${Math.ceil(rec.inv / 50)}` : `Solis 125 kW — 3 فاز × ${Math.ceil(rec.inv / 125)}`) : "";
+  const recPan = rec ? (rec.kwp < 3 ? `Suntech — ${Math.ceil((rec.kwp * 1000) / 595)} لوح 595W` : `Suntech — ${Math.ceil((rec.kwp * 1000) / 720)} لوح 720W`) : "";
+  const recBat = rec ? (rec.bat <= 0 ? "بدون" : peakKw <= 16 ? `Pylontech US5000 × ${Math.ceil(rec.bat / 4.8)}` : `HiTHIUM ليثيوم ${nf(rec.bat, 1)} kWh`) : "";
   return (
     <div className="space-y-4">
       <div className="rounded-lg border border-border bg-muted/35 p-4 text-sm">
@@ -157,11 +162,11 @@ export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?:
       {rec && (
         <div className="rounded-lg border-2 border-primary bg-primary/5 p-4">
           <p className="text-[11px] font-bold text-primary">المنظومة المناسبة لك</p>
-          <p className="mt-1 text-base font-black">منظومة هجينة تجارية {nf(rec.kwp, 1)} kWp</p>
+          <p className="mt-1 text-base font-black">منظومة هجينة {tier} {nf(rec.kwp, 1)} kWp</p>
           <div className="mt-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-3">
-            <div className="rounded-md bg-background p-2.5">الانفرتر<br /><b>Deye {invPkg(rec.inv)} kW{invPkg(rec.inv) >= 20 ? " — 3 فاز" : ""}</b></div>
-            <div className="rounded-md bg-background p-2.5">الألواح<br /><b>Suntech — {Math.ceil((rec.kwp * 1000) / 720)} لوح 720W</b></div>
-            <div className="rounded-md bg-background p-2.5">البطاريات<br /><b>ليثيوم {nf(rec.bat, 1)} kWh</b></div>
+            <div className="rounded-md bg-background p-2.5">الانفرتر<br /><b>{recInv}</b></div>
+            <div className="rounded-md bg-background p-2.5">الألواح<br /><b>{recPan}</b></div>
+            <div className="rounded-md bg-background p-2.5">البطاريات<br /><b>{recBat}</b></div>
           </div>
           {onBuy && (
             <button type="button" onClick={() => onBuy(kw.map((v, h) => `${h}: ${Math.round(v * 100) / 100}`).join("\n"))} className="mt-4 w-full rounded-md bg-energy px-6 py-3 text-sm font-black text-energy-foreground sm:w-auto">
@@ -172,6 +177,7 @@ export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?:
       )}
       <p className="text-[11px] text-muted-foreground">الأرقام تقديرية: {PSH} ساعات ذروة شمسية، {KWH_PER_L} kWh لكل لتر ديزل، وأسعار معدات متوسطة. السعر النهائي يُحدد في عرض السعر.</p>
       <div className="flex flex-wrap gap-2">
+        <button type="button" onClick={() => { setReport(true); toTop(); }} className="inline-flex items-center gap-2 rounded-md bg-navy px-4 py-2 text-xs font-black text-primary-foreground"><FileText className="size-4" /> فتح تقرير الدراسة الاقتصادية</button>
         <button type="button" onClick={() => setDone(false)} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تعديل البيانات</button>
         {onSales && <button type="button" onClick={onSales} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تواصل مع فريق أكتس</button>}
       </div>
