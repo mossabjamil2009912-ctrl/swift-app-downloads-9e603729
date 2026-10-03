@@ -430,12 +430,9 @@ export function videoIntroNarration(
   const power = spokenValue(p.power);
   const powerWord = p.category === "batteries" || p.category === "storage" ? "بسعة" : "بقدرة";
   const head = `${kind} ${brand}${model ? ` ${model}` : ""}، ${powerWord} ${power}`;
-  const specs = video.cues
-    .filter((c) => !isPowerCue(c.label))
-    .slice(0, 2)
-    .map((c) => `${c.label.replace(/\bPmax\b/gi, "").trim()} ${spokenValue(c.value)}`)
-    .join("، ");
-  return specs ? `${head}، ${specs}.` : `${head}.`;
+  // نطق مختصر: النوع والاسم والقدرة فقط؛ المواصفات تظهر مكتوبة على الفيديو.
+  void video;
+  return `${head}.`;
 }
 
 /**
@@ -455,9 +452,9 @@ export function afterVideoNarration(p: {
   const words = (s: string) => s.split(" ").length;
   const use = (p.uses ?? []).map(clean).find((u) => u.length > 4 && words(u) <= 8) ?? "";
   const feature = (p.features ?? []).filter((f) => !/[\d٠-٩A-Za-z×:]/.test(f.split(/[،.]/)[0]!)).map(clean).find((f) => f.length > 6 && words(f) <= 7) ?? "";
-  const first = use ? `مناسب لـ ${use}.` : "";
-  const second = feature ? `ومن أبرز مزاياه: ${feature}.` : "";
-  return [first, second].filter(Boolean).join(" ");
+  // جملة واحدة قصيرة فقط.
+  if (use) return `مناسب لـ ${use}.`;
+  return feature ? `من أبرز مزاياه: ${feature}.` : "";
 }
 
 

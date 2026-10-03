@@ -357,11 +357,8 @@ export function speakScreen(key: string, text: string) {
   stopSpeaking();
   lastScreen = key;
   pendingKey = "";
-  // نبدأ النطق بعد رسم الشاشة الجديدة مباشرة، حتى لا يؤخّر تجهيز الصوت ظهور الشاشة.
-  const start = () => { void speak(text, true); };
-  if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
-    window.requestAnimationFrame(() => window.setTimeout(start, 0));
-  } else start();
+  // النطق يبدأ فوراً مع ظهور الشاشة بلا أي تأجيل.
+  void speak(text, true);
 }
 
 /**
