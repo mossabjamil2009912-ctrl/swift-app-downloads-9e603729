@@ -163,3 +163,99 @@ export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?:
     </div>
   );
 }
+
+/** دراسة جدوى لمنظومة جاهزة حدد العميل سعرها — بلا طلب عرض سعر. */
+export function EcoSystemStudy({ onSales }: { onSales?: () => void }) {
+  const [f, setF] = useState({ panel: "", panelW: "", panelN: "", inv: "", invKw: "", invN: "", bat: "", batKwh: "", batN: "", cost: "", price: "1.1" });
+  const [done, setDone] = useState(false);
+  const n = (v: string) => Math.max(0, Number(v) || 0);
+  const kwp = (n(f.panelW) * n(f.panelN)) / 1000;
+  const invKw = n(f.invKw) * n(f.invN);
+  const batKwh = n(f.batKwh) * n(f.batN);
+  const capex = n(f.cost);
+  const dp = n(f.price);
+  const ok = f.panel.trim() && kwp > 0 && f.inv.trim() && invKw > 0 && capex > 0;
+  // الإنتاج اليومي محدود بقدرة الانفرتر
+  const dailyKwh = Math.min(kwp, invKw * 1.3) * PSH * PR;
+  const yearKwh = dailyKwh * 365;
+  const liters = Math.round(yearKwh / KWH_PER_L);
+  const saving = Math.round(liters * dp * 1.1);
+  let cum = -capex; let payback: number | null = null;
+  const rows: { y: number; cum: number }[] = [];
+  for (let y = 1; y <= YEARS; y++) {
+    const net = saving * Math.pow(1 - DEG, y - 1) - capex * OM;
+    const prev = cum; cum += net; rows.push({ y, cum: Math.round(cum) });
+    if (payback === null && prev < 0 && cum >= 0 && net > 0) payback = y - 1 + Math.abs(prev) / net;
+  }
+  const roi = capex > 0 ? Math.round((cum / capex) * 100) : 0;
+  const field = (k: keyof typeof f, label: string, ph: string, num = false, opt = false) => (
+    <label className="grid gap-1">
+      <span className="text-xs font-bold">{label}{opt && <span className="text-muted-foreground"> (اختياري)</span>}</span>
+      <input inputMode={num ? "decimal" : "text"} value={f[k]} placeholder={ph} onChange={(e) => setF({ ...f, [k]: e.target.value })} className="rounded-md border border-border bg-background px-3 py-2 text-sm" />
+    </label>
+  );
+
+  if (!done) {
+    return (
+      <form onSubmit={(e) => { e.preventDefault(); if (ok) setDone(true); }} className="rounded-lg border border-border bg-muted/35 p-5">
+        <p className="text-sm font-black">بيانات المنظومة</p>
+        <p className="mt-1 text-xs text-muted-foreground">اكتب مكونات منظومتك الجاهزة وتكلفتها لنحسب جدواها الاقتصادية.</p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          {field("panel", "اسم اللوح", "Suntech")}
+          {field("panelW", "قدرة اللوح (W)", "720", true)}
+          {field("panelN", "عدد الألواح", "20", true)}
+          {field("inv", "اسم الانفرتر", "Deye")}
+          {field("invKw", "قدرة الانفرتر (kW)", "12", true)}
+          {field("invN", "عدد الانفرترات", "1", true)}
+          {field("bat", "اسم البطارية", "Pylontech", false, true)}
+          {field("batKwh", "سعة البطارية (kWh)", "5", true, true)}
+          {field("batN", "عدد البطاريات", "2", true, true)}
+          {field("cost", "تكلفة المنظومة ($)", "10000", true)}
+          {field("price", "سعر لتر الديزل ($)", "1.1", true)}
+        </div>
+        <button type="submit" disabled={!ok} className="mt-4 w-full rounded-md bg-skyline px-6 py-3 text-sm font-bold text-skyline-foreground disabled:opacity-50 sm:w-auto">احسب الجدوى الاقتصادية</button>
+      </form>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg border border-border bg-muted/35 p-4 text-sm">
+        <p className="font-black">منظومتك</p>
+        <div className="mt-2 grid grid-cols-1 gap-2 text-xs sm:grid-cols-4">
+          <div>الألواح<br /><b>{f.panel} — {f.panelN} × {f.panelW}W = {nf(kwp, 2)} kWp</b></div>
+          <div>الانفرتر<br /><b>{f.inv} — {f.invN} × {f.invKw} kW</b></div>
+          <div>البطاريات<br /><b>{batKwh > 0 ? `${f.bat} — ${f.batN} × ${f.batKwh} kWh` : "بدون"}</b></div>
+          <div>التكلفة<br /><b className="tabular-nums">{nf(capex)} $</b></div>
+        </div>
+      </div>
+      <div className="rounded-lg border-2 border-primary bg-primary/5 p-4">
+        <p className="text-sm font-black">نتائج الجدوى الاقتصادية</p>
+        <dl className="mt-3 grid gap-x-6 gap-y-1.5 text-xs sm:grid-cols-2">
+          {[
+            ["الإنتاج اليومي المتوقع", `${nf(dailyKwh, 1)} kWh`],
+            ["الإنتاج السنوي", `${nf(yearKwh)} kWh`],
+            ["الديزل الموفّر سنوياً", `${nf(liters)} لتر`],
+            ["التوفير السنوي", `${nf(saving)} $`],
+            ["فترة الاسترداد", payback ? `${Math.round(payback * 10) / 10} سنة` : "—"],
+            [`صافي الربح خلال ${YEARS} سنة`, `${nf(cum)} $`],
+            ["العائد على الاستثمار", `${roi}%`],
+            ["تكلفة الواط", kwp > 0 ? `${nf(capex / (kwp * 1000), 2)} $/W` : "—"],
+          ].map(([k, v]) => (
+            <div key={k} className="flex justify-between gap-2 border-b border-border/60 pb-1"><dt className="text-muted-foreground">{k}</dt><dd className="font-bold tabular-nums">{v}</dd></div>
+          ))}
+        </dl>
+        <div className="mt-4 grid grid-cols-5 gap-1 text-center text-[10px] sm:grid-cols-10">
+          {rows.filter((r) => r.y % 5 === 0 || r.y <= 5).map((r) => (
+            <div key={r.y} className={`rounded p-1 ${r.cum >= 0 ? "bg-energy/15" : "bg-muted"}`}>سنة {r.y}<br /><b className="tabular-nums">{nf(r.cum)}</b></div>
+          ))}
+        </div>
+      </div>
+      <p className="text-[11px] text-muted-foreground">الأرقام تقديرية: {PSH} ساعات ذروة شمسية، نسبة أداء {PR * 100}%، {KWH_PER_L} kWh لكل لتر ديزل، وتدهور سنوي {DEG * 100}%.</p>
+      <div className="flex flex-wrap gap-2">
+        <button type="button" onClick={() => setDone(false)} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تعديل البيانات</button>
+        {onSales && <button type="button" onClick={onSales} className="rounded-md border border-border px-4 py-2 text-xs font-bold">تواصل مع فريق أكتس</button>}
+      </div>
+    </div>
+  );
+}
