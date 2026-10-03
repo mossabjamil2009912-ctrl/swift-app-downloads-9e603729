@@ -3305,7 +3305,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     study_ask: 'plan_pick',
     sld_ask: 'plan_pick',
     ind_activity: 'menu_sys3',
-    ind_shifts: 'ind_activity',
+    ind_shifts: 'menu_sys3',
     ind_total_kw: 'ind_shifts',
     ind_night_kw: 'ind_total_kw',
     ind_max_mach: 'ind_total_kw',
@@ -3693,7 +3693,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     if (text === '1') { menu_choice = '1'; res_method = ''; step = 'res_bill'; response = resMethodAsk(); }
     else if (text === '2') { menu_choice = '2'; step = 'com_method'; response = comMethodAsk(); }
     else if (text === '3') { menu_choice = '4'; agrInit(); step = 'agr_pump_type'; response = agrPumpTypeAsk(); }
-    else if (text === '4') { menu_choice = '3'; indInit(customer_name || ''); step = 'ind_activity'; response = indActivityAsk(); }
+    else if (text === '4') { menu_choice = '3'; indInit(customer_name || ''); step = 'ind_shifts'; response = indShiftsAsk(); }
     else { response = noOpt(W(' اختر نوع المنظومة\n' + SEP + '\n1 - النظام السكني\n2 - النظام التجاري\n4 - النظام الصناعي\n3 - النظام الزراعي')); }
 
 
@@ -3815,7 +3815,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     else { response = noOpt(W('اختر نوع النظام:')); }
 
   } else if (step === 'menu_ind_agr') {
-    if (text === '1') { menu_choice = '3'; indInit(customer_name || ''); step = 'ind_activity'; response = indActivityAsk(); }
+    if (text === '1') { menu_choice = '3'; indInit(customer_name || ''); step = 'ind_shifts'; response = indShiftsAsk(); }
     else if (text === '2') { menu_choice = '4'; agrInit(); step = 'agr_pump_type'; response = agrPumpTypeAsk(); }
     else { response = noOpt(W('اختر نوع النظام:')); }
 
@@ -3969,7 +3969,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
 
   } else if (step === 'ind_starter') {
     var _st = String(text).replace(/^starter_/, '');
-    if (IND_STARTER[_st]) { indSet({ starter: _st, sf: IND_STARTER[_st].f }); step = 'ind_source'; response = indSourceAsk(); }
+    if (IND_STARTER[_st]) { indSet({ starter: _st, sf: IND_STARTER[_st].f }); response = indFinish(); }
     else { response = noOpt(indStarterAsk()); }
 
   } else if (step === 'ind_source') {
