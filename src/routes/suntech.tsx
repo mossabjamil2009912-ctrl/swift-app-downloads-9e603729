@@ -51,12 +51,6 @@ const PROJECTS = [
   { k: "res", t: "السكني", e: "Residential", img: `${M}/home-bg3-m.jpg`, list: [["Huzhou Huaikan Rooftop", "Huzhou · الصين", "5 kW"], ["Kingspan Residential BIPV", "Waterford · إنجلترا", "4.8 kW"], ["Cosmo Town BIPV", "Saitama · اليابان", "237 kW"], ["Waterloo Rooftop", "Ottawa · كندا", "8 kW"]] },
 ];
 
-const STORAGE = [
-  { t: "SunStorage Home", s: "السكني", d: "مركز طاقة منزلي ذكي بسعات من 6 حتى 54 kWh، للاستهلاك الذاتي وإدارة التعرفة والطاقة الاحتياطية مع تحويل فوري بالمللي ثانية." },
-  { t: "SunStorage PRO", s: "التجاري والصناعي", d: "حاوية تخزين متكاملة مبرّدة بالسائل مثل STE-1ML-500P (10 أقدام): بطاريات وتبريد وإطفاء حريق ووحدة تحويل STS للشبكة/المستقل." },
-  { t: "SunStorage MAX", s: "محطات المرافق", d: "حلول تخزين واسعة النطاق لمحطات الطاقة المتجددة الكبرى واستقرار الشبكة." },
-];
-
 const TECH = [
   ["+26%", "كفاءة خلايا N-Type TOPCon"],
   ["−0.29%/°C", "معامل حرارة منخفض — إنتاج أعلى 3–4% من PERC"],
@@ -291,7 +285,7 @@ function SuntechPage() {
         </div>
       </section>
 
-      {detailP && <BrandProductDetail product={detailP} accent="#e60012" onClose={() => setDetail(null)} />}
+      {detailP && <BrandProductDetail product={detailP} accent="#e60012" gallery={[`${M}/solar-module-banner.png`, `${M}/banner-20260408.webp`, `${M}/solar-module-banner-bg.jpg`]} onClose={() => setDetail(null)} />}
       <footer className="bg-foreground py-8 text-sm text-background/70">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5">
           <p dir="ltr">©Copyright. Wuxi Suntech Power Co., Ltd. All Rights Reserved.</p>
