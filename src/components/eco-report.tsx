@@ -108,7 +108,7 @@ const Sec = ({ n, kicker, title, note, children }: { n: string; kicker: string; 
 );
 
 const Page = ({ n, children }: { n: number; children: React.ReactNode }) => (
-  <div className="report-page overflow-hidden rounded-xl border shadow-sm" style={{ background: R.paper, borderColor: R.line, breakAfter: n < 6 ? "page" : "auto" }}>
+  <div className="report-page overflow-hidden rounded-xl border shadow-sm" style={{ background: R.paper, borderColor: R.line, breakAfter: n < 5 ? "page" : "auto" }}>
     <div className="flex items-center justify-between gap-3 border-b bg-white px-4 py-3 sm:px-6" style={{ borderColor: R.line }}>
       <div className="flex items-center gap-3"><img src={LOGO} alt="ACTES" className="h-9 w-auto object-contain" /><span dir="ltr" className="hidden text-[11px] font-black tracking-wide sm:inline" style={{ color: "#4b5563" }}>ENERGY SYSTEMS & SOLUTIONS</span></div>
       <span className="rounded-md border bg-white px-3 py-1.5 text-[11px]" style={{ borderColor: R.line, color: "#4b5563" }}><i className="me-1.5 inline-block size-2 rounded-full" style={{ background: R.green }} />دراسة جدوى تنفيذية • صفحة {n} من 5</span>
@@ -164,6 +164,7 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system, p
   const a1 = d.hours.map((x) => x.direct), a2 = d.hours.map((x) => x.direct + x.batOut), a3 = d.hours.map((x) => x.direct + x.batOut + Math.max(0, x.load - x.direct - x.batOut));
   const zero = Array(24).fill(0);
   const ys = (v: number) => P.t + (H - P.t - P.b) * (1 - v / 100);
+  const noBat = d.batKwh <= 0;
   const fmtM = (m: number | null) => m === null ? "—" : m < 24 ? `${nf(m, 1)} شهر` : `${nf(m / 12, 1)} سنة`;
 
   const [busy, setBusy] = useState(false);
@@ -173,9 +174,10 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system, p
     try {
       const [{ jsPDF }, { default: html2canvas }] = await Promise.all([import("jspdf"), import("html2canvas-pro")]);
       const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+      await document.fonts.ready;
       const pages = Array.from(node.querySelectorAll<HTMLElement>(".report-page"));
       for (let i = 0; i < pages.length; i++) {
-        const canvas = await html2canvas(pages[i]!, { scale: 2, backgroundColor: "#ffffff", useCORS: true, windowWidth: 1000 });
+        const canvas = await html2canvas(pages[i]!, { scale: 2, backgroundColor: "#ffffff", useCORS: true, windowWidth: 1000, onclone: (doc: Document) => { const st = doc.createElement("style"); st.textContent = "*{letter-spacing:0 !important;font-feature-settings:normal !important;text-rendering:geometricPrecision !important}"; doc.head.appendChild(st); } });
         const pw = 210, ph = 297, m = 6;
         let w = pw - m * 2, h = (canvas.height * w) / canvas.width;
         if (h > ph - m * 2) { h = ph - m * 2; w = (canvas.width * h) / canvas.height; }
@@ -211,7 +213,7 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system, p
         <Sec n="01" kicker="لوحة المؤشرات" title="الأثر التنفيذي" note="المؤشرات الأساسية للمنظومة، محسوبة على أساس التشغيل السنوي الكامل.">
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-5">
             <Kpi hot t="إجمالي القدرة الشمسية" v={`${nf(d.kwp, 2)} kWp`} s={d.panelLabel} />
-            <Kpi t="سعة التخزين المركبة" v={`${nf(d.batKwh)} kWh`} s={d.batLabel} />
+            {!noBat && <Kpi t="سعة التخزين المركبة" v={`${nf(d.batKwh)} kWh`} s={d.batLabel} />}
             <Kpi t="التغطية النظيفة" v={`${nf(d.clean)} %`} s={`من حمل يومي ${nf(d.total)} kWh`} />
             <Kpi hot t="إيقاف المولد" v={`${offH} ساعة/يوم`} s={`${nf(offH * 365)} ساعة سنوياً`} />
             <Kpi t="توفير الديزل" v={`${nf(e.savedL * 365)} لتر/سنة`} s={`≈ ${nf(e.savedL)} لتر/يوم`} />
@@ -248,12 +250,12 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system, p
               <thead><tr className="bg-navy text-primary-foreground"><th className="p-2 text-right">بند المقارنة</th><th className="p-2 text-right">بدون منظومة</th><th className="p-2 text-right">المنظومة المقترحة (Solar + BESS)</th></tr></thead>
               <tbody>
                 {[
-                  ["نوع المنظومة", "مولدات ديزل فقط", "منظومة هجينة متكاملة Solar + BESS"],
+                  ["نوع المنظومة", "مولدات ديزل فقط", noBat ? "منظومة شمسية On-Grid بدون بطاريات" : "منظومة هجينة متكاملة Solar + BESS"],
                   ["الألواح الشمسية", "لا يوجد", d.panelLabel],
                   ["قدرة الألواح", "0 kWp", `${nf(d.kwp, 2)} kWp`],
                   ["الإنفرترات", "لا يوجد", `${d.invN} وحدة ${d.invBrand} × ${d.unit} kW`],
-                  ["بطاريات الليثيوم", "لا يوجد", `${d.batLabel} — ${nf(d.batKwh)} kWh (${nf(d.batKwh * DOD)} kWh عند ${DOD * 100}% DoD)`],
-                  ...(d.custom ? [] : [["راكات التخزين", "لا يوجد", `${d.racks} راك`]]),
+                  ...(noBat ? [] : [["بطاريات الليثيوم", "لا يوجد", `${d.batLabel} — ${nf(d.batKwh)} kWh (${nf(d.batKwh * DOD)} kWh عند ${DOD * 100}% DoD)`]]),
+                  ...(d.custom || noBat ? [] : [["راكات التخزين", "لا يوجد", `${d.racks} راك`]]),
                   ["ساعات تشغيل المولد", `${d.baseHours} ساعة/يوم`, `${d.genHours} ساعة/يوم (إيقاف ${offH} ساعة)`],
                   ["استهلاك الديزل اليومي", `${nf(e.baseL)} لتر`, `${nf(e.newL)} لتر/يوم`],
                   ["استهلاك الديزل السنوي", `${nf(e.baseL * 365)} لتر`, `${nf(e.newL * 365)} لتر (توفير ${nf(e.savedL * 365)} لتر)`],
@@ -284,7 +286,7 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system, p
             <table className="w-full text-xs">
               <tbody>{[
                 ["ساعات التغطية النهارية (شمس مباشرة)", `${d.sunH} ساعات — ${nf(d.kwp, 1)} kWp`],
-                ["ساعات التغطية الليلية (تفريغ البطاريات)", `${d.batH} ساعات — ${nf(d.batKwh * DOD)} kWh صافي`],
+                ...(noBat ? [] : [["ساعات التغطية الليلية (تفريغ البطاريات)", `${d.batH} ساعات — ${nf(d.batKwh * DOD)} kWh صافي`]]),
                 ["ساعات الاستغناء التام عن المولد", `${offH} ساعة/يوم`],
                 ["ساعات تشغيل المولد المتبقية", `${d.genHours} ساعات/يوم`],
                 ["نسبة الاستغناء عن المولد من اليوم", `${nf((offH / 24) * 100, 1)}%`],
@@ -301,7 +303,7 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system, p
                   </div>
                 </div>
               ))}
-              <Legend items={[[C.sun, "شمس نهاراً"], [C.bat, "بطاريات ليلاً"], [C.gen, "تشغيل المولد"]]} />
+              <Legend items={[[C.sun, "شمس نهاراً"], ...(noBat ? [] : [[C.bat, "بطاريات ليلاً"] as [string, string]]), [C.gen, "تشغيل المولد"]]} />
             </div>
           </div>
         </Sec>
@@ -314,7 +316,7 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system, p
             <path d={area(a1, zero)} fill={C.sun} opacity={0.85} />
             <path d={step(d.hours.map((x) => x.load))} fill="none" stroke={C.load} strokeWidth={1.8} />
           </Frame>
-          <Legend items={[[C.sun, "شمس مباشرة"], [C.bat, "البطاريات"], [C.gen, "المولد"], [C.load, "الحمل (kW)"]]} />
+          <Legend items={[[C.sun, "شمس مباشرة"], ...(noBat ? [] : [[C.bat, "البطاريات"] as [string, string]]), [C.gen, "المولد"], [C.load, "الحمل (kW)"]]} />
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <div>
               <p className="text-xs font-black">استهلاك الديزل اليومي (لتر)</p>
@@ -336,7 +338,7 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system, p
         </Sec>
         </Page>
         <Page n={5}>
-        <Sec n="07" kicker="أداء البطاريات" title="حالة شحن البطاريات" note="منحنى شحن وتفريغ البطاريات خلال 24 ساعة.">
+        {!noBat && <Sec n="07" kicker="أداء البطاريات" title="حالة شحن البطاريات" note="منحنى شحن وتفريغ البطاريات خلال 24 ساعة.">
           <div>
             <div>
               <p className="text-xs font-black">حالة شحن البطاريات — 24 ساعة</p>
@@ -351,10 +353,8 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system, p
               </svg>
             </div>
           </div>
-        </Sec>
-        </Page>
-        <Page n={6}>
-        <Sec n="08" kicker="الإنتاج الشمسي" title="الإنتاج الشمسي مقابل الحمل">
+        </Sec>}
+        <Sec n={noBat ? "07" : "08"} kicker="الإنتاج الشمسي" title="الإنتاج الشمسي مقابل الحمل">
           <div>
               <p className="text-[11px] text-muted-foreground">المساحة الخضراء تمثل الفائض الشمسي المستخدم في شحن البطاريات • ذروة الإنتاج {nf(Math.max(...d.hours.map((x) => x.pv)))} / ذروة الحمل {nf(d.peak)} kW</p>
               <Frame max={kMax} unit="">
