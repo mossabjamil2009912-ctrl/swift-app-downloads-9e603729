@@ -28,7 +28,31 @@ const TECH = [
   { icon: Layers, t: "توسعة معيارية", d: "تكديس وتوازي الوحدات حسب حاجة المشروع." },
 ];
 
-const NAV = [["#products", "المنتجات"], ["#tech", "التقنية"], ["#downloads", "التنزيلات"]] as const;
+const NAV = [
+  { label: "الابتكارات", items: [["الخلايا Cell", "#tech"], ["السلامة والتقنيات", "#tech"]] },
+  { label: "المنتجات", items: [["الخلايا Cell", "#tech"], ["الوحدات Module", "#products"], ["أنظمة المرافق Utility System", "#products"], ["الأنظمة التجارية C&I System", "#products"], ["الأنظمة السكنية Residential System", "#products"]] },
+  { label: "الدعم", items: [["التنزيلات Download", "#downloads"], ["الموقع الرسمي", "https://www.hithium.com"]] },
+] as const;
+
+function HiNav() {
+  const [open, setOpen] = useState<number | null>(null);
+  return (
+    <nav className="hidden h-full items-stretch gap-1 text-sm md:flex" onMouseLeave={() => setOpen(null)}>
+      {NAV.map((n, i) => (
+        <div key={n.label} className="relative" onMouseEnter={() => setOpen(i)}>
+          <button onClick={() => setOpen(open === i ? null : i)} className={`border-r-2 px-3 py-1 ${open === i ? "border-primary text-primary" : "border-transparent hover:text-primary"}`}>{n.label}</button>
+          {open === i && (
+            <div className="absolute right-0 top-full z-20 mt-3 min-w-[230px] rounded-lg bg-background py-2 shadow-xl ring-1 ring-border">
+              {n.items.map(([t, h]) => (
+                <a key={t} href={h} {...(h.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})} onClick={() => setOpen(null)} className="block px-5 py-3 text-sm hover:text-primary">{t}</a>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </nav>
+  );
+}
 
 function HithiumPage() {
   const items = PRODUCTS.filter((p) => /hithium/i.test(p.brand));
@@ -39,7 +63,7 @@ function HithiumPage() {
       <header className="sticky top-0 z-10 border-b border-border bg-card/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-3"><img src={actesLogo} alt="ACTES" className="h-9 w-auto" /><span className="h-7 w-px bg-border" /><img src="/brand/makers/hithium.png" alt="HiTHIUM" className="h-6 w-auto" /></div>
-          <nav className="hidden gap-5 text-sm md:flex">{NAV.map(([h, l]) => <a key={h} href={h} className="hover:text-primary">{l}</a>)}</nav>
+          <HiNav />
           <Link to="/" className="inline-flex items-center gap-1 rounded-full border border-border px-4 py-1.5 text-sm hover:bg-muted"><ArrowRight className="h-4 w-4" /> الرئيسية</Link>
         </div>
       </header>

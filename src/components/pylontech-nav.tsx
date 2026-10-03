@@ -3,7 +3,6 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, ChevronDown, ChevronLeft, Download, Globe, Menu, Search, ShieldCheck, X } from "lucide-react";
 import type { Product } from "@/lib/products-data";
 import { officialCatalogUrl } from "@/lib/official-catalogs";
-import { ContactPanel, ServicePanel } from "@/components/pylontech-forms";
 import actesLogo from "@/assets/actes-logo-full.webp";
 
 type Simple = { t: string; d?: string; h: string };
@@ -118,11 +117,20 @@ export function PylontechNav({ products }: { products: Product[] }) {
           <img src={actesLogo} alt="ACTES" className="h-9 w-auto" />
         </div>
         <nav className="hidden h-full items-stretch gap-7 text-[15px] lg:flex">
-          {[{ id: "solutions", label: "المنتجات والحلول" }, ...MENUS].map((m) => (
-            <button key={m.id} onMouseEnter={() => setOpen(m.id)} onClick={() => setOpen(open === m.id ? null : m.id)}
-              className={`flex items-center gap-1 border-b-2 ${open === m.id ? "border-primary text-primary" : "border-transparent hover:text-primary"}`}>
-              {m.label}<ChevronDown className="h-3.5 w-3.5" />
-            </button>
+          {[{ id: "solutions", label: "المنتجات والحلول", items: [] as Simple[] }, ...MENUS].map((m) => (
+            <div key={m.id} className="relative flex" onMouseEnter={() => setOpen(m.id)}>
+              <button onClick={() => setOpen(open === m.id ? null : m.id)}
+                className={`flex items-center gap-1 border-b-2 ${open === m.id ? "border-primary text-primary" : "border-transparent hover:text-primary"}`}>
+                {m.label}<ChevronDown className="h-3.5 w-3.5" />
+              </button>
+              {open === m.id && m.items.length > 0 && (
+                <div className="absolute right-0 top-full min-w-[220px] rounded-b-lg border border-border bg-background py-2 shadow-lg">
+                  {m.items.map((it) => (
+                    <a key={it.t} href={it.h} onClick={close} className="block px-5 py-2.5 text-sm hover:bg-muted hover:text-primary">{it.t}</a>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </nav>
         <div className="flex items-center gap-4 text-sm">
@@ -169,21 +177,6 @@ export function PylontechNav({ products }: { products: Product[] }) {
           </div>
         </div>
       )}
-      {MENUS.map((m) => open === m.id && (
-        <div key={m.id} className="absolute inset-x-0 top-16 hidden border-t border-border bg-background shadow-xl lg:block">
-          <div className="mx-auto flex max-h-[calc(100vh-4rem)] max-w-7xl items-start justify-between gap-10 overflow-y-auto px-5 py-8">
-            <div className="min-w-0 flex-1">
-              <p className="mb-3 text-lg font-semibold">{m.label}</p>
-              <div className="flex max-w-xs flex-col">
-                {m.items.map((it) => <a key={it.t} href={it.h} onClick={close} className="py-2 text-sm hover:text-primary">{it.t}</a>)}
-              </div>
-              {m.id === "support" && <div className="mt-6 space-y-8"><ServicePanel /><Downloads products={products} /></div>}
-              {m.id === "contact" && <div className="mt-6"><ContactPanel /></div>}
-            </div>
-            <div className="w-80"><ActesCard a={m.actes} onClick={close} /></div>
-          </div>
-        </div>
-      ))}
 
       {/* قائمة الجوال */}
       {mobile && (
