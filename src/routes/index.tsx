@@ -1989,7 +1989,7 @@ function OptionGrid({ options, selected, projectCards = false, energyCards = fal
     return "bg-brand/12 text-brand";
   };
   return (
-    <div className="stagger-in grid gap-2.5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+    <div className={`stagger-in grid gap-2.5 grid-cols-1 ${options.length === 3 ? "sm:grid-cols-3" : options.length === 4 ? "sm:grid-cols-2 xl:grid-cols-4" : "sm:grid-cols-2 xl:grid-cols-3"}`}>
 
       {options.map((option, index) => {
         const active = selected === option.id;
