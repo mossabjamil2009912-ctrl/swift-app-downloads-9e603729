@@ -13,7 +13,7 @@ export function LazyVideo({ src, poster, className, ...rest }: { src: string } &
     if (!el) return;
     const io = new IntersectionObserver(
       ([e]) => {
-        if (e.isIntersecting) {
+        if (e?.isIntersecting) {
           setVisible(true);
           void el.play().catch(() => {});
         } else {
