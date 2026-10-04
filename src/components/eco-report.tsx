@@ -110,7 +110,7 @@ const Sec = ({ n, kicker, title, note, children }: { n: string; kicker: string; 
 const Page = ({ n, children }: { n: number; children: React.ReactNode }) => (
   <div className="report-page overflow-hidden rounded-xl border shadow-sm" style={{ background: R.paper, borderColor: R.line, breakAfter: n < 5 ? "page" : "auto" }}>
     <div className="flex items-center justify-between gap-3 border-b bg-white px-4 py-3 sm:px-6" style={{ borderColor: R.line }}>
-      <div className="flex items-center gap-3"><img src={LOGO} alt="ACTES" className="h-9 w-auto object-contain" /><span dir="ltr" className="hidden text-[11px] font-black tracking-wide sm:inline" style={{ color: "#4b5563" }}>ENERGY SYSTEMS & SOLUTIONS</span></div>
+      <div className="flex items-center gap-3"><img src={LOGO} alt="ACTES" className="h-14 w-auto object-contain" /><span dir="ltr" className="hidden text-[11px] font-black tracking-wide sm:inline" style={{ color: "#4b5563" }}>ENERGY SYSTEMS & SOLUTIONS</span></div>
       <span className="rounded-md border bg-white px-3 py-1.5 text-[11px]" style={{ borderColor: R.line, color: "#4b5563" }}><i className="me-1.5 inline-block size-2 rounded-full" style={{ background: R.green }} />دراسة جدوى تنفيذية • صفحة {n} من 5</span>
     </div>
     <div className="space-y-5 p-4 sm:p-5">{children}</div>
@@ -367,7 +367,7 @@ export function EcoReport({ kw, price: price0, onBuy, onEdit, onSales, system, p
         </Sec>
         <p className="text-center text-[11px]" style={{ color: R.sub }}>الأرقام تقديرية: {PSH} ساعات ذروة شمسية، {KWH_PER_L} kWh لكل لتر ديزل.</p>
         <footer className="flex flex-wrap items-center justify-between gap-3 rounded-xl px-5 py-4" style={{ background: R.ink }}>
-          <div className="flex items-center gap-3"><span className="rounded bg-white px-2 py-1"><img src={LOGO} alt="ACTES" className="h-7 w-auto" /></span><b dir="ltr" className="text-sm" style={{ color: "#fff" }}>ACTES Energy Systems & Solutions</b></div>
+          <div className="flex items-center gap-3"><span className="rounded bg-white px-2 py-1"><img src={LOGO} alt="ACTES" className="h-12 w-auto" /></span><b dir="ltr" className="text-sm" style={{ color: "#fff" }}>ACTES Energy Systems & Solutions</b></div>
           <span className="text-[12px]" style={{ color: "#9ca3af" }}>من إعداد شركة أكتس لأنظمة الطاقة وحلولها</span>
         </footer>
         </Page>
