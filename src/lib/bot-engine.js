@@ -3097,8 +3097,14 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     pvPush(list, z.inv.item || ('inverter:' + z.inv.kwac + ':' + z.inv.ph), z.nInv);
     if (z.nBat > 0) { pvPush(list, z.bat.item || ('battery:' + z.bat.kwh), z.nBat); }
     pvPush(list, 'cable', z.nPan * 4 + 30);
-    pvPush(list, 'dc:' + Math.min(4, Math.max(1, z.nStr)), 1);
-    pvPush(list, z.inv.ph === 3 ? ((z.inv.kwac * z.nInv >= 30) ? 'ac:3-100' : 'ac:3') : 'ac:1', 1);
+    // لوحات حماية DC: صندوق تجميع لكل خطين من السلاسل (4 خطوط للمنظومات الكبيرة)
+    var nStrQ = Math.max(1, z.nStr || z.nInv || 1);
+    if (nStrQ > 6) { pvPush(list, 'dc:4', Math.ceil(nStrQ / 4)); }
+    else { pvPush(list, 'dc:' + Math.min(3, Math.max(1, Math.min(nStrQ, 2))), Math.ceil(nStrQ / 2)); }
+    // لوحات حماية AC: لوحة لكل إنفرتر عند تعدد الإنفرترات
+    var nInvQ = Math.max(1, z.nInv || 1);
+    var acKey = z.inv.ph === 3 ? ((z.inv.kwac * nInvQ >= 30) ? 'ac:3-100' : 'ac:3') : 'ac:1';
+    pvPush(list, acKey, nInvQ);
     return list;
   }
   function pvSldAskMsg() {
