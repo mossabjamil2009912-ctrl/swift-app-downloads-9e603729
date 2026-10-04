@@ -1478,6 +1478,26 @@ export function SldSvg({
                     strokeWidth={wEps}
                     markerEnd="url(#sld-arrow)"
                   />
+                  {/* صندوق خرج الأحمال الحرجة (EPS) — قاطع رئيسي + RCD + SPD */}
+                  <Block
+                    x={xAc}
+                    y={loadY - 24}
+                    w={wAc}
+                    h={48}
+                    title="EPS OUTPUT BOARD"
+                    lines={[
+                      `MCB ${ac?.breakerA || 32} A ${phase3 ? "4P" : "2P"} + RCD 30 mA`,
+                      "AC SPD Type 2",
+                    ]}
+                    accent={C.ac}
+                    id="ac"
+                    pick={pick}
+                    active={active === "ac"}
+                    art="board-ac"
+                    real={real}
+                  />
+                  <Node x={xAc} y={loadY} color={C.ac} />
+                  <Node x={xAc + wAc} y={loadY} color={C.ac} />
                   <Node x={xInv + wInv} y={dcY + 30} color={C.ac} />
                   <PhaseMark x={(xInv + wInv + xOut) / 2 + 40} y={loadY} phase3={phase3} />
                   <WireTag
