@@ -2751,7 +2751,8 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
   function indNameAsk() { return indHdr('بيانات المشروع') + 'اكتب اسم المصنع أو الجهة المالكة للمشروع'; }
   function indLocAsk() { return locGovAsk(' موقع المصنع\nحدد موقع المشروع لترتيب إجراءات التوريد والتركيب'); }
   function indActivityAsk() { return indHdr('النشاط الصناعي') + 'حدد نوع النشاط الصناعي لمصنعك، ليتناسب تصميم المنظومة مع طبيعة الإنتاج'; }
-  function indShiftsAsk() { return indHdr('ساعات التشغيل') + 'كم وردية يعمل المصنع في اليوم؟\n\n1 — وردية نهارية واحدة (8 ساعات: 08:00 — 16:00)\n2 — ورديتان (16 ساعة: 08:00 — 00:00)\n3 — ثلاث ورديات (تشغيل مستمر 24 ساعة)\n\nنستخدم الورديات لتحديد الحاجة للبطاريات وتغطية العمل الليلي'; }
+  function indShiftsAsk() { return indHdr('ساعات التشغيل') + 'كم وردية يعمل المصنع في اليوم؟\n\n1 — وردية نهارية واحدة (8 ساعات: 08:00 — 16:00)\n2 — ورديتان (16 ساعة: 08:00 — 00:00)\n3 — ثلاث ورديات (تشغيل مستمر 24 ساعة)\n4 — تحديد الأوقات بنفسي (من كذا إلى كذا)\n\nأو اكتب الأوقات مباشرة، مثال: من 7 إلى 15'; }
+  function indShiftsCustomAsk() { return indHdr('أوقات الورديات') + 'اكتب وقت بداية ونهاية كل وردية\n\nمثال لوردية واحدة: من 7 إلى 15\nمثال لورديتين: 6-14، 14-22\nويمكن كتابة الدقائق: 07:30 - 15:30\n\nافصل بين الورديات بفاصلة أو سطر جديد'; }
   function indShiftPreset(n) {
     if (n === 1) { return [[8, 16]]; }
     if (n === 2) { return [[8, 16], [16, 0]]; }
@@ -2876,11 +2877,24 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     var nInv = z.nInv;
     if (z.inv.kwac * nInv < needAc) { nInv = Math.ceil(needAc / z.inv.kwac); }
     if (nInv !== z.nInv) {
+      // كل إنفرتر يجب أن يستقبل سلسلة واحدة على الأقل؛ نزيد السلاسل إن لزم
+      var nStr = Math.max(z.nStr || 0, nInv);
+      if (nStr !== z.nStr && z.nStr > 0 && z.nPan) {
+        var perStr = Math.round(z.nPan / z.nStr);
+        z.nStr = nStr; z.nPan = perStr * nStr;
+      }
       var spi = [], bs = Math.floor(z.nStr / nInv), rm = z.nStr % nInv;
       for (var q = 0; q < nInv; q++) { spi.push(bs + (q < rm ? 1 : 0)); }
       z.nInv = nInv; z.strPerInv = spi; z.mppt = z.inv.mppt * nInv;
     }
-    if (ind.goal === '1' && z.nBat > 0) {
+    var nightOn = indHoursSummary(ind).night > 0;
+    var nkwA = parseFloat(ind.nkw) || 0;
+    if (!nightOn && nkwA <= 0 && z.nBat > 0) {
+      // وردية نهارية فقط: بطارية صغيرة لتثبيت الإقلاع والانتقال للمولد (≈15 دقيقة)
+      var use0 = z.bat.kwh * z.bat.dod / 100;
+      var nb0 = Math.max(1, Math.ceil(op * 0.25 / use0));
+      if (nb0 < z.nBat) { z.nBat = nb0; z.batKwh = z.bat.kwh * nb0; z.needKwh = Math.round(op * 0.25 * 10) / 10; }
+    } else if (ind.goal === '1' && z.nBat > 0) {
       // بطاريات محدودة: احتياطي ساعة واحدة من الحمل التشغيلي لتغطية السحب والانتقال للمولد
       var use = z.bat.kwh * z.bat.dod / 100;
       var nb = Math.max(1, Math.ceil(op * 1.0 / use));
@@ -3355,6 +3369,9 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     if (st === 'quote_name') { return menu_choice === '2' ? 'com_visit_ask' : 'res_quote_ask'; }
     if (/_dist$/.test(st)) { return st.slice(0, -5) + '_gov'; }
     if (/_gov$/.test(st)) { return PREV_STEP[st.slice(0, -4)] || 'welcome_services'; }
+    if (st === 'ind_max_mach') { return (((indGet() || {}).nsh || 1) > 1) ? 'ind_night_kw' : 'ind_total_kw'; }
+    if (st === 'ind_result') { return 'ind_starter'; }
+    if (st === 'ind_shifts_custom') { return 'ind_shifts'; }
     return PREV_STEP[st] || 'welcome_services';
   }
   function askForStep(st) {
@@ -3926,9 +3943,24 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
       step = 'ind_shifts'; response = indShiftsAsk();
     }
 
-  } else if (step === 'ind_shifts') {
+  } else if (step === 'ind_shifts' || step === 'ind_shifts_custom') {
     var _ns = parseInt(String(text).replace(/^shifts_/, ''), 10);
-    if (_ns >= 1 && _ns <= 3) {
+    var _custom = (step === 'ind_shifts' && String(text) === 'shifts_custom');
+    var _shl = (String(text).indexOf('shifts_') === 0) ? null : indParseShiftList(text);
+    if (_custom) { step = 'ind_shifts_custom'; response = indShiftsCustomAsk(); }
+    else if (_shl && _shl.length) {
+      // ورديات مخصصة يكتبها العميل: من كذا إلى كذا
+      var _nightOn = false, _m0 = indShiftMap(_shl);
+      for (var _hh = 0; _hh < 24; _hh++) { if (_m0[_hh] && (_hh < 6 || _hh >= 18)) { _nightOn = true; } }
+      var _nsc = _nightOn ? Math.max(2, _shl.length) : 1;
+      indSet({ nsh: _nsc, cur: _shl.length, shifts: _shl });
+      var _indC = indGet();
+      var _hsC = indHoursSummary(_indC);
+      daily_hours = String(_hsC.total); night_hours = String(_hsC.night);
+      step = 'ind_total_kw';
+      response = W(' تم تسجيل ساعات التشغيل\n' + SEP + '\n' + indShiftsText(_indC)) + '\n\n' + indTotalAsk();
+    }
+    else if (step === 'ind_shifts' && _ns >= 1 && _ns <= 3) {
       var _shp = indShiftPreset(_ns);
       indSet({ nsh: _ns, cur: _ns, shifts: _shp });
       var _ind1 = indGet();
@@ -3937,6 +3969,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
       step = 'ind_total_kw';
       response = W(' تم تسجيل ساعات التشغيل\n' + SEP + '\n' + indShiftsText(_ind1)) + '\n\n' + indTotalAsk();
     }
+    else if (step === 'ind_shifts_custom') { response = W('لم أتمكن من قراءة الأوقات') + '\n\n' + indShiftsCustomAsk(); }
     else { response = noOpt(indShiftsAsk()); }
 
   } else if (step === 'ind_total_kw') {
