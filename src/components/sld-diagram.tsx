@@ -665,11 +665,13 @@ export function SldSvg({
   const dcY = busY;
   const powerOutX = xInv + wInv;
   const backup = Boolean(bat && inv);
-  // مسار EPS يمرّ أسفل مجموعة الإنفرترات ولوحة الـ AC حتى لا يعبر الصناديق
-  const loadY = backup ? Math.max(dcY + 86, invY + invH + 40) : m.grid ? dcY + 34 : dcY;
   /** صندوق لوحة الـ AC بارتفاع ثابت متوسّط المحور عند تعدد الإنفرترات. */
   const acBoxH = multiInv ? 150 : invH + 12;
   const acBoxY = multiInv ? dcY - acBoxH / 2 : invY - 6;
+  // مسار EPS يمرّ أسفل مجموعة الإنفرترات ولوحة الـ AC حتى لا يعبر الصناديق
+  const loadY = backup
+    ? Math.max(dcY + 86, invY + invH + 40, ac ? acBoxY + acBoxH + 52 : 0)
+    : m.grid ? dcY + 34 : dcY;
   const batteryRiserX = xInv + wInv / 2;
   const mainFromX = m.ats && ac ? xAts + wAts : ac ? xAc + wAc : powerOutX;
 
@@ -1246,17 +1248,18 @@ export function SldSvg({
         {/* ── لوحة حماية الـ AC ─────────────────────────────────────────────── */}
         {ac && inv && (
           <>
-            <line x1={xInv + wInv} y1={dcY} x2={xAc} y2={dcY} stroke={C.ac} strokeWidth={2} />
+            <line x1={multiInv ? xInv + wInv + 10 : xInv + wInv} y1={dcY} x2={xAc} y2={dcY} stroke={C.ac} strokeWidth={2} />
             <WireTag x={(xInv + wInv + xAc) / 2} y={dcY - 22} text="W4" color={C.ac} />
             <VoltageDropBadge x={(xInv + wInv + xAc) / 2} y={dcY + 38} calc={calc("W4")} />
             <PhaseMark x={(xInv + wInv + xAc) / 2 - 34} y={dcY} phase3={phase3} />
+            <Node x={xInv + wInv} y={dcY} color={C.ac} />
             <Node x={xAc} y={dcY} color={C.ac} />
             <Block
               x={xAc}
               y={acBoxY}
               w={wAc}
               h={acBoxH}
-              title="AC PROTECTION BOARD"
+              title={multiInv ? "AC COMBINER / OUTPUT BOARD" : "AC OUTPUT BOARD (GRID)"}
               lines={[
                 `Main ${ac.breakerA} A ${ac.phase3 ? "4P" : "2P"} — IP54`,
                 ac.phase3 ? "L1 / L2 / L3 / N / PE" : "L / N / PE",
@@ -1475,6 +1478,26 @@ export function SldSvg({
                     strokeWidth={wEps}
                     markerEnd="url(#sld-arrow)"
                   />
+                  {/* صندوق خرج الأحمال الحرجة (EPS) — قاطع رئيسي + RCD + SPD */}
+                  <Block
+                    x={xAc}
+                    y={loadY - 24}
+                    w={wAc}
+                    h={48}
+                    title="EPS OUTPUT BOARD"
+                    lines={[
+                      `MCB ${ac?.breakerA || 32} A ${phase3 ? "4P" : "2P"} + RCD 30 mA`,
+                      "AC SPD Type 2",
+                    ]}
+                    accent={C.ac}
+                    id="ac"
+                    pick={pick}
+                    active={active === "ac"}
+                    art="board-ac"
+                    real={real}
+                  />
+                  <Node x={xAc} y={loadY} color={C.ac} />
+                  <Node x={xAc + wAc} y={loadY} color={C.ac} />
                   <Node x={xInv + wInv} y={dcY + 30} color={C.ac} />
                   <PhaseMark x={(xInv + wInv + xOut) / 2 + 40} y={loadY} phase3={phase3} />
                   <WireTag
