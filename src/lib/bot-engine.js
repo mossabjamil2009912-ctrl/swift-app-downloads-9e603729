@@ -744,12 +744,14 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     // ---- لوحات الحماية (قاعدة موحدة لكل المسارات)
     if (boards.length) {
       var first = boards[0], newBoards = [], b;
-      // جميع الأنظمة غير السكنية: لوحتان مستقلتان DC وAC دون استثناءات للقدرة أو نوع البطارية
-      var sz = actesDcSize(groups || 2);
+      // جميع الأنظمة غير السكنية: لوحتا حماية DC وAC لكل إنفرتر (تتعدد اللوحات بتعدد الإنفرترات)
+      var nBrd = Math.max(1, invQty || 1);
+      var gPer = Math.max(1, Math.ceil((groups || 2) / nBrd));
+      var sz = actesDcSize(gPer);
       var dp = ACTES_DC_PRICES[sz] || 630;
-      newBoards.push({ key: '', name: 'لوحة حماية DC', details: ACTES_DC_DET(sz), unit: 'حبة', qty: 1, price: dp, total: dp });
+      newBoards.push({ key: '', name: 'لوحة حماية DC', details: ACTES_DC_DET(sz), unit: 'حبة', qty: nBrd, price: dp, total: dp * nBrd });
       var ap = is3 ? 70 : 45;
-      newBoards.push({ key: '', name: 'لوحة حماية AC', details: ACTES_AC_DET(is3), unit: 'حبة', qty: 1, price: ap, total: ap });
+      newBoards.push({ key: '', name: 'لوحة حماية AC', details: ACTES_AC_DET(is3), unit: 'حبة', qty: nBrd, price: ap, total: ap * nBrd });
       if (newBoards.length) {
         var rebuilt = [];
         for (i = 0; i < items.length; i++) {
