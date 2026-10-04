@@ -3329,7 +3329,8 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     ind_diesel: 'ind_gen_kva',
     ind_bill: 'ind_source',
     ind_goal: 'ind_source',
-    ind_result: 'ind_source',
+    ind_result: 'ind_starter',
+    ind_shifts_custom: 'ind_shifts',
     ind_loc: 'ind_result',
     ind_quote_ask: 'ind_result',
 
@@ -3394,6 +3395,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     if (st === 'ind_name') { return indNameAsk(); }
     if (st === 'ind_activity') { return indActivityAsk(); }
     if (st === 'ind_shifts') { return indShiftsAsk(); }
+    if (st === 'ind_shifts_custom') { return indShiftsCustomAsk(); }
     if (st === 'ind_total_kw') { return indTotalAsk(); }
     if (st === 'ind_max_mach') { return indMaxAsk(); }
     if (st === 'ind_source') { return indSourceAsk(); }
@@ -3494,6 +3496,7 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     if (st === 'ind_name') { return indNameAsk(); }
     if (st === 'ind_activity') { return indActivityAsk(); }
     if (st === 'ind_shifts') { return indShiftsAsk(); }
+    if (st === 'ind_shifts_custom') { return indShiftsCustomAsk(); }
     if (st === 'ind_total_kw') { return indTotalAsk(); }
     if (st === 'ind_max_mach') { return indMaxAsk(); }
     if (st === 'ind_source') { return indSourceAsk(); }
@@ -4810,9 +4813,11 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
       return { kind: 'buttons', buttons: [
         { id: 'shifts_1', title: 'وردية واحدة' },
         { id: 'shifts_2', title: 'ورديتان' },
-        { id: 'shifts_3', title: 'ثلاث ورديات' }
+        { id: 'shifts_3', title: 'ثلاث ورديات' },
+        { id: 'shifts_custom', title: 'تحديد الأوقات بنفسي' }
       ] };
     }
+    if (st === 'ind_shifts_custom') { return { kind: 'buttons', buttons: [ backBtn() ] }; }
     if (st === 'ind_source') {
       return { kind: 'list', button: 'اختر المصدر', sections: [ { title: 'مصدر الكهرباء الحالي', rows: [
         { id: 'src_1', title: 'مولد فقط' },
