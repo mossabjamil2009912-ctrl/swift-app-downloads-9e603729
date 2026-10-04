@@ -217,7 +217,7 @@ function SuntechPage() {
 
 
       <section id="projects" className="relative overflow-hidden py-20">
-        <video src={`${M}/project-v-bg.mp4`} autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover opacity-20" />
+        <video src={`${M}/project-v-bg.mp4`} autoPlay muted loop playsInline preload="metadata" className="absolute inset-0 h-full w-full object-cover opacity-20" />
         <div className="relative mx-auto max-w-7xl px-5">
           <h2 className="text-center text-3xl font-bold">خريطة مشاريع Suntech</h2>
           <p className="mt-2 text-center text-sm text-muted-foreground" dir="ltr">SUNTECH PROJECT MAP</p>
