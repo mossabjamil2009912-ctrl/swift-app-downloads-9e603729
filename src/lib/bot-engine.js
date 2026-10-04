@@ -708,11 +708,12 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
       var s = list[k];
       items.push({ key: s.key || '', name: s.name, details: s.details || [], unit: s.unit || 'حبة', qty: Number(s.qty) || 0, price: Number(s.price) || 0, total: Number(s.total) || ((Number(s.qty) || 0) * (Number(s.price) || 0)) });
     }
-    var invKw = 0, is3 = !!opts.three, hv = !!opts.hv, panels = 0, groups = 0, strPer = 0;
+    var invKw = 0, invQty = 0, is3 = !!opts.three, hv = !!opts.hv, panels = 0, groups = 0, strPer = 0;
     var iDc = -1, iAc = -1, iCable = -1, iMc4 = -1, i, it, t, boards = [];
     for (i = 0; i < items.length; i++) {
       it = items[i]; t = actesTxt(it);
       if (/انفرتر|انفيرتر|إنفرتر/.test(t)) {
+        invQty += Number(it.qty) || 1;
         var kw = actesNum(t, /(\d+(?:\.\d+)?)\s*كيلو/);
         if (kw > invKw) { invKw = kw; }
         if (/ثري\s*فاز|3\s*فاز|ثلاثي/.test(t)) { is3 = true; }
