@@ -708,11 +708,12 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
       var s = list[k];
       items.push({ key: s.key || '', name: s.name, details: s.details || [], unit: s.unit || 'حبة', qty: Number(s.qty) || 0, price: Number(s.price) || 0, total: Number(s.total) || ((Number(s.qty) || 0) * (Number(s.price) || 0)) });
     }
-    var invKw = 0, is3 = !!opts.three, hv = !!opts.hv, panels = 0, groups = 0, strPer = 0;
+    var invKw = 0, invQty = 0, is3 = !!opts.three, hv = !!opts.hv, panels = 0, groups = 0, strPer = 0;
     var iDc = -1, iAc = -1, iCable = -1, iMc4 = -1, i, it, t, boards = [];
     for (i = 0; i < items.length; i++) {
       it = items[i]; t = actesTxt(it);
       if (/انفرتر|انفيرتر|إنفرتر/.test(t)) {
+        invQty += Number(it.qty) || 1;
         var kw = actesNum(t, /(\d+(?:\.\d+)?)\s*كيلو/);
         if (kw > invKw) { invKw = kw; }
         if (/ثري\s*فاز|3\s*فاز|ثلاثي/.test(t)) { is3 = true; }
@@ -743,12 +744,14 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     // ---- لوحات الحماية (قاعدة موحدة لكل المسارات)
     if (boards.length) {
       var first = boards[0], newBoards = [], b;
-      // جميع الأنظمة غير السكنية: لوحتان مستقلتان DC وAC دون استثناءات للقدرة أو نوع البطارية
-      var sz = actesDcSize(groups || 2);
+      // جميع الأنظمة غير السكنية: لوحتا حماية DC وAC لكل إنفرتر (تتعدد اللوحات بتعدد الإنفرترات)
+      var nBrd = Math.max(1, invQty || 1);
+      var gPer = Math.max(1, Math.ceil((groups || 2) / nBrd));
+      var sz = actesDcSize(gPer);
       var dp = ACTES_DC_PRICES[sz] || 630;
-      newBoards.push({ key: '', name: 'لوحة حماية DC', details: ACTES_DC_DET(sz), unit: 'حبة', qty: 1, price: dp, total: dp });
+      newBoards.push({ key: '', name: 'لوحة حماية DC', details: ACTES_DC_DET(sz), unit: 'حبة', qty: nBrd, price: dp, total: dp * nBrd });
       var ap = is3 ? 70 : 45;
-      newBoards.push({ key: '', name: 'لوحة حماية AC', details: ACTES_AC_DET(is3), unit: 'حبة', qty: 1, price: ap, total: ap });
+      newBoards.push({ key: '', name: 'لوحة حماية AC', details: ACTES_AC_DET(is3), unit: 'حبة', qty: nBrd, price: ap, total: ap * nBrd });
       if (newBoards.length) {
         var rebuilt = [];
         for (i = 0; i < items.length; i++) {
@@ -3097,8 +3100,14 @@ export function runStateMachine(__session, __parsed, __itemPrices) {
     pvPush(list, z.inv.item || ('inverter:' + z.inv.kwac + ':' + z.inv.ph), z.nInv);
     if (z.nBat > 0) { pvPush(list, z.bat.item || ('battery:' + z.bat.kwh), z.nBat); }
     pvPush(list, 'cable', z.nPan * 4 + 30);
-    pvPush(list, 'dc:' + Math.min(4, Math.max(1, z.nStr)), 1);
-    pvPush(list, z.inv.ph === 3 ? ((z.inv.kwac * z.nInv >= 30) ? 'ac:3-100' : 'ac:3') : 'ac:1', 1);
+    // لوحات حماية DC: صندوق تجميع لكل خطين من السلاسل (4 خطوط للمنظومات الكبيرة)
+    var nStrQ = Math.max(1, z.nStr || z.nInv || 1);
+    if (nStrQ > 6) { pvPush(list, 'dc:4', Math.ceil(nStrQ / 4)); }
+    else { pvPush(list, 'dc:' + Math.min(3, Math.max(1, Math.min(nStrQ, 2))), Math.ceil(nStrQ / 2)); }
+    // لوحات حماية AC: لوحة لكل إنفرتر عند تعدد الإنفرترات
+    var nInvQ = Math.max(1, z.nInv || 1);
+    var acKey = z.inv.ph === 3 ? ((z.inv.kwac * nInvQ >= 30) ? 'ac:3-100' : 'ac:3') : 'ac:1';
+    pvPush(list, acKey, nInvQ);
     return list;
   }
   function pvSldAskMsg() {
