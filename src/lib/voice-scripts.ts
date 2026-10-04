@@ -98,6 +98,12 @@ export const SCRIPTS: Record<string, Script> = {
   pv_study_ask: S("يُمْكِنُكَ طَلَبُ دِرَاسَةِ مُحَاكَاةِ الإِنْتَاجِيَّةِ السَّنَوِيَّةِ وَتَوْفِيرِ الطَّاقَةِ لِمَنْظُومَتِك.", "You can request an annual energy-yield and savings simulation study for your system.", "您可为系统申请年发电量与节能模拟研究。"),
   pv_sld_ask: S("المُخَطَّطُ التَّنْفِيذِيُّ يَضْمَنُ تَرْكِيبَ المَنْظُومَةِ وَلَوْحَاتِ الحِمَايَةِ بِأَعْلَى مَعَايِيرِ الأَمَان.", "The execution diagram ensures the system and protection panels are installed to the highest safety standards.", "施工图可确保系统与保护柜按最高安全标准安装。"),
   study_ask: S("يُمْكِنُكَ طَلَبُ دِرَاسَةِ مُحَاكَاةِ الإِنْتَاجِيَّةِ السَّنَوِيَّةِ وَتَوْفِيرِ الطَّاقَة.", "You can request an annual energy-yield and savings simulation study.", "您可申请年发电量与节能模拟研究。"),
+
+  // ===== دراسة الجدوى الاقتصادية =====
+  eco_mode: S("دِرَاسَةُ الجَدْوَى الاقْتِصَادِيَّة. اخْتَرِ البَيَانَاتِ المُتَوَفِّرَةَ لَدَيْك: بَيَانَاتُ الدِّيزِل، أَوْ بَيَانَاتُ الأَحْمَال، أَوْ بَيَانَاتُ مَنْظُومَتِكَ الجَاهِزَة.", "Economic feasibility study. Choose the data you have: diesel data, load data, or your ready system data.", "经济可行性研究。请选择您掌握的数据：柴油数据、负荷数据或现有系统数据。"),
+  eco_diesel_hours: S("اكْتُبِ اسْمَ المَشْرُوع، لِيَظْهَرَ فِي رَأْسِ تَقْرِيرِ الجَدْوَى.", "Type the project name to appear at the top of the feasibility report.", "请输入项目名称，它将显示在可行性报告的抬头。", true),
+  eco_loads_hours: S("اكْتُبِ اسْمَ المَشْرُوع، لِيَظْهَرَ فِي رَأْسِ تَقْرِيرِ الجَدْوَى.", "Type the project name to appear at the top of the feasibility report.", "请输入项目名称，它将显示在可行性报告的抬头。", true),
+  eco_system_hours: S("بَيَانَاتُ المَنْظُومَة. اكْتُبْ مُكَوِّنَاتِ مَنْظُومَتِكَ وَتَكْلِفَتَهَا بِالدُّولَار، لِنَحْسُبَ جَدْوَاهَا الاقْتِصَادِيَّة.", "System data. Enter your system components and cost in dollars so we can calculate its feasibility.", "系统数据。请输入系统组件及美元成本，以计算其经济可行性。", true),
   study_city_gov: S("حَدِّدِ المَوْقِعَ لِاعْتِمَادِ بَيَانَاتِ الإِشْعَاعِ الشَّمْسِيِّ فِي الدِّرَاسَة.", "Select the location so the study uses the right solar data.", "请选择地点，以采用相应的太阳辐射数据。"),
   study_city_sld_gov: S("حَدِّدِ المَوْقِعَ لِتَرْتِيبِ إِجْرَاءَاتِ التَّوْرِيدِ وَالتَّرْكِيب.", "Select the location so we can arrange supply and installation.", "请选择地点，以安排供货与安装。"),
   sld_ask: S("المُخَطَّطُ الكَهْرَبَائِيُّ التَّنْفِيذِيُّ يَضْمَنُ تَرْكِيبَ المَنْظُومَةِ بِأَعْلَى مَعَايِيرِ الأَمَان.", "The electrical execution diagram ensures the system is installed to the highest safety standards.", "电气施工图可确保系统按最高安全标准安装。"),

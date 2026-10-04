@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { ShoppingCart, X, FileText, Download } from "lucide-react";
 import { EcoReport, ecoSummary, type CustomSystem } from "./eco-report";
+import { speakScreen } from "@/lib/voice-guide";
 
 /** يعيد التمرير إلى رأس الشاشة عند الانتقال بين خطوات الدراسة. */
 function toTop() {
@@ -81,6 +82,15 @@ export function EcoFeasibility({ mode, onSales, onBuy }: { mode: Mode; onSales?:
   const [open, setOpen] = useState<number | null>(null);
   const [dl, setDl] = useState<number | null>(null);
   useEffect(() => { toTop(); }, [step]);
+  useEffect(() => {
+    if (step === "name") return; // شاشة الاسم ينطقها مسار المحادثة نفسه
+    const t = step === "data"
+      ? (mode === "diesel" ? "بَيَانَاتُ الدِّيزِل. اكْتُبِ اسْتِهْلَاكَ المُوَلِّدِ بِاللِّتْرِ لِكُلِّ سَاعَة، أَوِ اكْتُبِ الاسْتِهْلَاكَ اليَوْمِيَّ وَاضْغَطْ تَوْزِيعَ عَلَى السَّاعَات." : "بَيَانَاتُ الأَحْمَال. اكْتُبِ الحِمْلَ بِالكِيلُووَاط لِكُلِّ سَاعَة، أَوِ اكْتُبِ الحِمْلَ اليَوْمِيَّ وَاضْغَطْ تَوْزِيعَ عَلَى السَّاعَات.")
+      : step === "goal"
+        ? "مَا هَدَفُكَ مِنَ المَنْظُومَة؟ تَقْلِيلُ اسْتِهْلَاكِ الدِّيزِل، أَوِ الاسْتِغْنَاءُ عَنِ الدِّيزِل."
+        : `${goal === "reduce" ? "تَقْلِيلُ اسْتِهْلَاكِ الدِّيزِل" : "الاسْتِغْنَاءُ عَنِ الدِّيزِل"}. هَذِهِ ثَلَاثَةُ سِينَارْيُوهَاتٍ مُنَاسِبَةٍ لِمَشْرُوعِك. يُمْكِنُكَ فَتْحُ التَّقْرِيرِ الكَامِلِ أَوْ تَحْمِيلُه، أَوْ مُتَابَعَةُ الشِّرَاء.`;
+    speakScreen(`eco|${mode}|${step}|${goal}`, t);
+  }, [step, goal, mode]);
   const filled = values.filter((v) => v.trim() !== "" && !isNaN(Number(v))).length;
   const unit = mode === "diesel" ? "لتر/ساعة" : "kW";
   const kw = useMemo(() => values.map((v) => { const n = Math.max(0, Number(v) || 0); return mode === "diesel" ? n * KWH_PER_L : n; }), [values, mode]);
