@@ -3,7 +3,7 @@ import { Download, FileText, X } from "lucide-react";
 import type { Product } from "@/lib/products-data";
 import { getProductVideo } from "@/lib/product-video";
 import { officialCatalogUrl } from "@/lib/official-catalogs";
-import { useResolvedVideoSrc } from "@/lib/video-source";
+import { LazyVideo } from "@/components/lazy-video";
 
 /** صفحة منتج كاملة داخل مواقع العلامات: فيديو المنتج الحقيقي، الصور، المزايا، المواصفات والملفات الرسمية. */
 export function BrandProductDetail({ product, accent, onClose, gallery }: { product: Product; accent: string; onClose: () => void; gallery?: string[] }) {
@@ -21,7 +21,6 @@ export function BrandProductDetail({ product, accent, onClose, gallery }: { prod
 /** محتوى صفحة المنتج كاملاً (يُعرض مباشرة داخل صفحات الحلول). */
 export function ProductBody({ product: p, accent, gallery }: { product: Product; accent: string; gallery?: string[] | undefined }) {
   const video = getProductVideo(p.baseId ?? p.id) ?? getProductVideo(p.id);
-  const src = useResolvedVideoSrc(video?.src ?? "");
   const [tab, setTab] = useState(0);
   const ar = officialCatalogUrl(p, "ar");
   const en = officialCatalogUrl(p, "en");
@@ -42,8 +41,8 @@ export function ProductBody({ product: p, accent, gallery }: { product: Product;
       {/* فيديو ووصف ACTES */}
       <section className="mx-auto grid max-w-7xl gap-8 px-5 py-12 md:grid-cols-2">
         <div className="overflow-hidden rounded-2xl bg-muted">
-          {video && src ? (
-            <video src={src} poster={video.poster} autoPlay muted loop playsInline controls className="h-full max-h-[60svh] w-full object-cover" />
+          {video ? (
+            <LazyVideo src={video.src} poster={video.poster ?? p.image} controls className="h-full max-h-[60svh] w-full object-cover" />
           ) : (
             <div className="flex h-72 items-center justify-center"><img src={p.image} alt={p.name} className="max-h-[80%] object-contain" /></div>
           )}

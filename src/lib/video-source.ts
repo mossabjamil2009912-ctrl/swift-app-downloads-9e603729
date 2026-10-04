@@ -47,10 +47,15 @@ export function useResolvedVideoSrc(src: string): string {
     let cancelled = false;
     void (async () => {
       try {
+        // التخزين الدائم في المتصفح: بعد أول تحميل يبدأ الفيديو فوراً دون إعادة تنزيل.
+        const store = typeof caches !== "undefined" ? await caches.open("actes-videos-v1").catch(() => null) : null;
         const buffers = await Promise.all(
           parts.map(async (p) => {
+            const hit = store ? await store.match(p) : undefined;
+            if (hit) return hit.blob();
             const res = await fetch(p);
             if (!res.ok) throw new Error(`part failed: ${p}`);
+            if (store) void store.put(p, res.clone()).catch(() => {});
             return res.blob();
           }),
         );
